@@ -6,13 +6,14 @@ import 'package:task_radar/data/adapter/response_adapter.dart';
 
 abstract interface class HttpServiceAdapter {
   Future<ResponseAdapter<T>> get<T>(RequestAdapter request);
+  Future<ResponseAdapter<T>> post<T>(RequestAdapter request);
+  Future<dio.Response> fetch(dio.RequestOptions requestOptions);
 }
 
 final class HttpServiceAdapterImp implements HttpServiceAdapter {
   final dio.Dio _client;
 
-  HttpServiceAdapterImp({required dio.Dio client, })
-    : _client = client;
+  HttpServiceAdapterImp({required dio.Dio client}) : _client = client;
 
   @override
   Future<ResponseAdapter<T>> get<T>(RequestAdapter request) async {
@@ -60,5 +61,62 @@ final class HttpServiceAdapterImp implements HttpServiceAdapter {
         stackTrace: s,
       );
     }
+  }
+
+  @override
+  Future<ResponseAdapter<T>> post<T>(RequestAdapter request) async {
+    const retryOptions = RetryOptions(maxAttempts: 3);
+
+    try {
+      final response = await retryOptions.retry(
+        () async => await _client.post(
+          request.path,
+          data: request.data,
+          queryParameters: request.queryParams,
+          options: dio.Options(headers: request.headers),
+        ),
+        retryIf: (e) {
+          if (e is dio.DioException) {
+            return switch (e.type) {
+              dio.DioExceptionType.connectionTimeout => true,
+              dio.DioExceptionType.connectionError => true,
+              dio.DioExceptionType.unknown => true,
+              _ => false,
+            };
+          }
+          return false;
+        },
+      );
+      return ResponseAdapter<T>(
+        data: response.data,
+        statusCode: response.statusCode,
+        statusMessage: response.statusMessage,
+      );
+    } on dio.DioException catch (dioError, s) {
+      final requestIsformData =
+          dioError.requestOptions.contentType == "multipart/form-data";
+      throw HttpError(
+        request: RequestAdapter(
+          path: dioError.requestOptions.path,
+          data: requestIsformData ? null : dioError.requestOptions.data,
+          headers: dioError.requestOptions.headers,
+          queryParams: dioError.requestOptions.queryParameters,
+        ),
+        response: ResponseAdapter(
+          type: dioError.type.name,
+          data: dioError.response?.data ?? dioError.message,
+          statusCode: dioError.response?.statusCode,
+          statusMessage: dioError.response?.statusMessage,
+        ),
+        exception: dioError,
+        stackTrace: s,
+      );
+    }
+  }
+
+  @override
+  Future<dio.Response> fetch(dio.RequestOptions requestOptions) async {
+    // TODO: resolver implementação do adapter futurammente.
+    return await _client.fetch(requestOptions);
   }
 }

@@ -2,17 +2,22 @@ import 'dart:async' show TimeoutException;
 import 'dart:io' show SocketException;
 import "package:dio/dio.dart" as dio;
 import 'package:retry/retry.dart' show RetryOptions;
+import 'package:task_radar/data/adapter/request_adapter.dart';
+import 'package:task_radar/data/adapter/response_adapter.dart';
+import 'package:task_radar/data/network/http_service_adapter.dart';
 import 'package:task_radar/data/storage/refresh_token_model.dart';
 import 'package:task_radar/data/storage/storage.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
 
 class AuthInterceptor extends dio.Interceptor {
-  final dio.Dio _client;
+  final HttpServiceAdapter _client;
   final Storage _storage;
 
-  AuthInterceptor({required dio.Dio client, required Storage storage})
-    : _client = client,
-      _storage = storage;
+  AuthInterceptor({
+    required HttpServiceAdapter client,
+    required Storage storage,
+  }) : _client = client,
+       _storage = storage;
 
   Future<String?> _getJwtToken() async {
     final authJwt = await _storage.getItemToFactory(
@@ -30,18 +35,25 @@ class AuthInterceptor extends dio.Interceptor {
     );
   }
 
-  Future<void> _updateJwt(RefreshTokenModel auth, String newToken, String newRefreshToken) async {
-    final newAuth = auth.copyWith(token: newToken, refreshToken: newRefreshToken);
+  Future<void> _updateJwt(
+    RefreshTokenModel auth,
+    String newToken,
+    String newRefreshToken,
+  ) async {
+    final newAuth = auth.copyWith(
+      token: newToken,
+      refreshToken: newRefreshToken,
+    );
     await _storage.setItem(StorageSecureEnum.auth_jwt, newAuth.toJson());
   }
 
-  Future<dio.Response?> _refreshToken(RefreshTokenModel auth) async {
+  Future<ResponseAdapter?> _refreshToken(RefreshTokenModel auth) async {
     const retryOptions = RetryOptions(maxAttempts: 3);
 
     final data = {"refreshToken": auth.refreshToken, "expiresInMins": 30};
 
     return await retryOptions.retry(
-      () => _client.post('/auth/refresh', data: data),
+      () => _client.post(RequestAdapter(path: '/auth/refresh', data: data)),
       retryIf: (e) => e is SocketException || e is TimeoutException,
     );
   }
