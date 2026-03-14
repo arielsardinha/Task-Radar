@@ -8,6 +8,8 @@ import 'package:task_radar/modules/tasks/bloc/tasks_event.dart';
 import 'package:task_radar/modules/tasks/bloc/tasks_state.dart';
 
 class TasksBloc extends Bloc<TasksEvent, TasksState> {
+  static const int _pageSize = 30;
+
   final TaskRepository _taskRepository;
   final StorageImpl _storage;
 
@@ -18,6 +20,7 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
        _storage = storage,
        super(const TasksState.initial()) {
     on<TasksEventLoad>(_onLoad);
+     on<TasksEventLoadMore>(_onLoadMore);
     on<TasksEventSearchChanged>(_onSearchChanged);
     on<TasksEventFilterChanged>(_onFilterChanged);
     on<TasksEventOrderChanged>(_onOrderChanged);
@@ -29,19 +32,22 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
   }
 
   Future<void> _onLoad(TasksEventLoad event, Emitter<TasksState> emit) async {
-    emit(state.copyWith(status: TasksStateStatus.loading, clearMessage: true));
+    emit(
+      state.copyWith(
+        status: TasksStateStatus.loading,
+        isLoadingMore: false,
+        hasReachedEnd: false,
+        clearMessage: true,
+      ),
+    );
 
     try {
-      final me = (await _storage.getItemToFactory(
-        StorageSecureEnum.auth_user,
-        fromJson: MeModel.fromJson,
-      ))!;
-
-      final userId = me.id;
+      final userId = await _resolveUserId();
       if (userId == null) {
         emit(
           state.copyWith(
             status: TasksStateStatus.failure,
+            isLoadingMore: false,
             message: 'Nao foi possivel identificar o usuario autenticado.',
           ),
         );
@@ -62,6 +68,8 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
           status: TasksStateStatus.success,
           allTasks: tasks,
           visibleTasks: visible,
+          isLoadingMore: false,
+          hasReachedEnd: tasks.length < _pageSize,
           clearMessage: true,
         ),
       );
@@ -69,7 +77,81 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
       emit(
         state.copyWith(
           status: TasksStateStatus.failure,
+          isLoadingMore: false,
           message: 'Falha ao carregar tarefas.',
+        ),
+      );
+    }
+  }
+
+  Future<void> _onLoadMore(
+    TasksEventLoadMore event,
+    Emitter<TasksState> emit,
+  ) async {
+    if (state.status != TasksStateStatus.success ||
+        state.isLoadingMore ||
+        state.hasReachedEnd) {
+      return;
+    }
+
+    final userId = await _resolveUserId();
+    if (userId == null) {
+      emit(
+        state.copyWith(
+          status: TasksStateStatus.failure,
+          isLoadingMore: false,
+          message: 'Nao foi possivel identificar o usuario autenticado.',
+        ),
+      );
+      return;
+    }
+
+    emit(state.copyWith(isLoadingMore: true, clearMessage: true));
+
+    try {
+      final nextPage = await _taskRepository.getAllByUser(
+        userId: userId,
+        limit: _pageSize,
+        skip: state.allTasks.length,
+      );
+
+      if (nextPage.isEmpty) {
+        emit(state.copyWith(isLoadingMore: false, hasReachedEnd: true));
+        return;
+      }
+
+      final existingIds = state.allTasks.map((task) => task.localId).toSet();
+      final merged = List<Task>.from(state.allTasks);
+      for (final task in nextPage) {
+        if (existingIds.add(task.localId)) {
+          merged.add(task);
+        }
+      }
+
+      final visible = _applyView(
+        tasks: merged,
+        query: state.query,
+        filter: state.filter,
+        order: state.order,
+        orderAscending: state.orderAscending,
+      );
+
+      emit(
+        state.copyWith(
+          status: TasksStateStatus.success,
+          allTasks: merged,
+          visibleTasks: visible,
+          isLoadingMore: false,
+          hasReachedEnd: nextPage.length < _pageSize,
+          clearMessage: true,
+        ),
+      );
+    } catch (_) {
+      emit(
+        state.copyWith(
+          status: TasksStateStatus.success,
+          isLoadingMore: false,
+          message: 'Falha ao carregar mais tarefas.',
         ),
       );
     }
@@ -299,5 +381,13 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
     });
 
     return filtered;
+  }
+
+  Future<int?> _resolveUserId() async {
+    final me = await _storage.getItemToFactory(
+      StorageSecureEnum.auth_user,
+      fromJson: MeModel.fromJson,
+    );
+    return me?.id;
   }
 }

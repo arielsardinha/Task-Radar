@@ -611,4 +611,77 @@ void main() {
       );
     });
   });
+
+  group('TasksBloc - pagination', () {
+    test('deve carregar proxima pagina ao receber TasksEventLoadMore', () async {
+      stubAuthenticated();
+      final firstPage = List.generate(30, (index) {
+        return buildTask(
+          localId: 'p$index',
+          remoteId: index + 1,
+          name: 'Task $index',
+          description: 'descricao $index',
+          status: TaskStatus.pending,
+        );
+      });
+      final secondPage = [
+        buildTask(
+          localId: 'p31',
+          remoteId: 31,
+          name: 'Task 31',
+          description: 'descricao 31',
+          status: TaskStatus.completed,
+        ),
+      ];
+
+      when(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 0)).thenAnswer(
+        (_) async => firstPage,
+      );
+      when(
+        taskRepository.getAllByUser(userId: 77, limit: 30, skip: 30),
+      ).thenAnswer((_) async => secondPage);
+
+      tasksBloc.add(TasksEventLoad());
+      await untilCalled(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 0));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(tasksBloc.state.status, TasksStateStatus.success);
+      expect(tasksBloc.state.allTasks.length, 30);
+      expect(tasksBloc.state.hasReachedEnd, isFalse);
+
+      tasksBloc.add(TasksEventLoadMore());
+      await untilCalled(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 30));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(tasksBloc.state.status, TasksStateStatus.success);
+      expect(tasksBloc.state.isLoadingMore, isFalse);
+      expect(tasksBloc.state.allTasks.length, 31);
+      expect(tasksBloc.state.hasReachedEnd, isTrue);
+
+      verify(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 30)).called(1);
+    });
+
+    test('nao deve carregar mais quando fim da lista foi atingido', () async {
+      stubAuthenticated();
+      final firstPage = [
+        pendingAlpha,
+        completedBeta,
+      ];
+
+      when(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 0)).thenAnswer(
+        (_) async => firstPage,
+      );
+
+      tasksBloc.add(TasksEventLoad());
+      await untilCalled(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 0));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(tasksBloc.state.hasReachedEnd, isTrue);
+
+      tasksBloc.add(TasksEventLoadMore());
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      verifyNever(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 2));
+    });
+  });
 }

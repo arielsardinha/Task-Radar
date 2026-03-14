@@ -10,6 +10,8 @@ final class TasksState {
   final TaskListFilter filter;
   final TaskListOrder order;
   final bool orderAscending;
+  final bool isLoadingMore;
+  final bool hasReachedEnd;
   final String query;
   final String? message;
 
@@ -20,6 +22,8 @@ final class TasksState {
     required this.filter,
     required this.order,
     required this.orderAscending,
+    required this.isLoadingMore,
+    required this.hasReachedEnd,
     required this.query,
     this.message,
   });
@@ -32,6 +36,8 @@ final class TasksState {
         filter: TaskListFilter.all,
         order: TaskListOrder.defaultById,
         orderAscending: true,
+        isLoadingMore: false,
+        hasReachedEnd: false,
         query: '',
       );
 
@@ -53,6 +59,8 @@ final class TasksState {
     TaskListFilter? filter,
     TaskListOrder? order,
     bool? orderAscending,
+    bool? isLoadingMore,
+    bool? hasReachedEnd,
     String? query,
     String? message,
     bool clearMessage = false,
@@ -64,6 +72,8 @@ final class TasksState {
       filter: filter ?? this.filter,
       order: order ?? this.order,
       orderAscending: orderAscending ?? this.orderAscending,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      hasReachedEnd: hasReachedEnd ?? this.hasReachedEnd,
       query: query ?? this.query,
       message: clearMessage ? null : (message ?? this.message),
     );

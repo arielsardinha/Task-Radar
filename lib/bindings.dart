@@ -67,7 +67,7 @@ sealed class Bindings {
       () => TaskPageSyncService(
         local: instance.get<TaskLocalDataSource>(),
         remote: instance.get<TaskRemoteDataSource>(),
-        pageSize: 20,
+        pageSize: 30,
       ),
     );
 

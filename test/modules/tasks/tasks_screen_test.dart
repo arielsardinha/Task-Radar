@@ -418,5 +418,6 @@ void main() {
       expect((listTile.title as Text).data, 'Sem descricao');
       expect(listTile.subtitle, isNull);
     });
+
   });
 }

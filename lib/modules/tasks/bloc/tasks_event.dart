@@ -8,6 +8,8 @@ abstract class TasksEvent {}
 
 final class TasksEventLoad extends TasksEvent {}
 
+final class TasksEventLoadMore extends TasksEvent {}
+
 final class TasksEventSearchChanged extends TasksEvent {
   final String query;
 

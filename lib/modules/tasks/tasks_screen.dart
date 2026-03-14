@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -254,6 +255,11 @@ class _TasksScreenState extends State<TasksScreen> {
                       TasksStateStatus.success => _TasksContent(
                         pendingTasks: state.pendingTasks,
                         completedTasks: state.completedTasks,
+                        isLoadingMore: state.isLoadingMore,
+                        hasReachedEnd: state.hasReachedEnd,
+                        onRefreshPagination: () async {
+                          _tasksBloc.add(TasksEventLoadMore());
+                        },
                         onTapTask: (task) {
                           showModalBottomSheet<void>(
                             context: context,
@@ -301,12 +307,18 @@ class _TasksScreenState extends State<TasksScreen> {
 class _TasksContent extends StatelessWidget {
   final List<Task> pendingTasks;
   final List<Task> completedTasks;
+  final bool isLoadingMore;
+  final bool hasReachedEnd;
+  final Future<void> Function() onRefreshPagination;
   final ValueChanged<Task> onTapTask;
   final ValueChanged<Task> onToggle;
 
   const _TasksContent({
     required this.pendingTasks,
     required this.completedTasks,
+    required this.isLoadingMore,
+    required this.hasReachedEnd,
+    required this.onRefreshPagination,
     required this.onTapTask,
     required this.onToggle,
   });
@@ -315,42 +327,86 @@ class _TasksContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final hasAnyTask = pendingTasks.isNotEmpty || completedTasks.isNotEmpty;
 
-    return ListView(
-      children: [
-        Text(
-          'Pendentes',
-          style: textTheme.titleSmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 8),
-        ...pendingTasks.map(
-          (task) => _TaskItem(task: task, onTap: onTapTask, onToggle: onToggle),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Concluídas',
-          style: textTheme.titleSmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 8),
-        ...completedTasks.map(
-          (task) => _TaskItem(task: task, onTap: onTapTask, onToggle: onToggle),
-        ),
-        if (pendingTasks.isEmpty && completedTasks.isEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 32),
-            child: Center(
-              child: Text(
-                'Nenhuma tarefa encontrada.',
-                style: textTheme.bodyMedium,
+    return Transform.rotate(
+      angle: math.pi,
+      child: RefreshIndicator(
+        onRefresh: onRefreshPagination,
+        child: ListView(
+          reverse: true,
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            Transform.rotate(
+              angle: math.pi,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Pendentes',
+                    style: textTheme.titleSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...pendingTasks.map(
+                    (task) => _TaskItem(
+                      task: task,
+                      onTap: onTapTask,
+                      onToggle: onToggle,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Concluídas',
+                    style: textTheme.titleSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...completedTasks.map(
+                    (task) => _TaskItem(
+                      task: task,
+                      onTap: onTapTask,
+                      onToggle: onToggle,
+                    ),
+                  ),
+                  if (!hasAnyTask)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 32),
+                      child: Center(
+                        child: Text(
+                          'Nenhuma tarefa encontrada.',
+                          style: textTheme.bodyMedium,
+                        ),
+                      ),
+                    ),
+                  if (isLoadingMore)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Center(
+                        child: CircularProgressIndicator.adaptive(),
+                      ),
+                    ),
+                  if (!isLoadingMore && hasReachedEnd && hasAnyTask)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Center(
+                        child: Text(
+                          'Todas as tarefas foram carregadas.',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 80),
+                ],
               ),
             ),
-          ),
-        const SizedBox(height: 80),
-      ],
+          ],
+        ),
+      ),
     );
   }
 }
