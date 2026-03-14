@@ -1,6 +1,7 @@
 import 'package:task_radar/data/adapter/http_error_adapter.dart';
 import 'package:task_radar/data/adapter/request_adapter.dart';
 import 'package:task_radar/data/adapter/response_adapter.dart';
+import 'package:task_radar/data/models/me_model.dart';
 import 'package:task_radar/data/network/http_service_adapter.dart';
 import 'package:task_radar/data/storage/refresh_token_model.dart';
 import 'package:task_radar/data/storage/storage.dart';
@@ -40,6 +41,11 @@ final class LoginRepositoryImpl implements LoginRepository {
             refreshToken: response.data['refreshToken'],
             token: response.data['accessToken'],
           ).toJson(),
+        );
+
+        await _storage.setItem(
+          StorageSecureEnum.auth_user,
+          MeModel.fromJson(response.data).toJson(),
         );
       } else {
         throw Exception("falha ao realizar login: ${response.statusCode}");

@@ -28,6 +28,12 @@ void main() {
 				(_) async => const ResponseAdapter<Map<String, dynamic>>(
 				statusCode: 200,
 				data: {
+					'id': 1,
+					'username': 'usuario_teste',
+					'email': 'usuario@teste.com',
+					'firstName': 'Usuario',
+					'lastName': 'Teste',
+					'image': 'https://dummyjson.com/icon/usuario/128',
 					'accessToken': 'access-token-valido',
 					'refreshToken': 'refresh-token-valido',
 				},
@@ -46,10 +52,24 @@ void main() {
 				'password': 'senha123',
 			});
 
-			verify(storage.setItem(StorageSecureEnum.auth_jwt, {
-				'refresh_token': 'refresh-token-valido',
-				'token': 'access-token-valido',
-			})).called(1);
+			verifyInOrder([
+				storage.setItem(StorageSecureEnum.auth_jwt, {
+					'refresh_token': 'refresh-token-valido',
+					'token': 'access-token-valido',
+				}),
+				storage.setItem(
+					StorageSecureEnum.auth_user,
+					argThat(
+						isA<Map<String, dynamic>>()
+							.having((m) => m['id'], 'id', 1)
+							.having((m) => m['username'], 'username', 'usuario_teste')
+							.having((m) => m['email'], 'email', 'usuario@teste.com')
+							.having((m) => m['firstName'], 'firstName', 'Usuario')
+							.having((m) => m['lastName'], 'lastName', 'Teste')
+							.having((m) => m['image'], 'image', 'https://dummyjson.com/icon/usuario/128'),
+					),
+				),
+			]);
 		});
 
 		test('deve lançar excecao quando status code for diferente de 200', () async {
