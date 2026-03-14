@@ -15,21 +15,18 @@ class HomeScreen extends StatelessWidget {
     final firstName = user.user.fullName;
 
     return Scaffold(
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 88),
-        child: FloatingActionButton(
-          key: const Key('HomeScreen.FloatingActionButton.newTask'),
-          onPressed: () {
-            showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              showDragHandle: true,
-              backgroundColor: const Color(0xFFF7F2FA),
-              builder: (_) => const NewTaskBottomSheet(),
-            );
-          },
-          child: const Icon(Icons.add),
-        ),
+      floatingActionButton: FloatingActionButton(
+        key: const Key('HomeScreen.FloatingActionButton.newTask'),
+        onPressed: () {
+          showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            showDragHandle: true,
+            backgroundColor: const Color(0xFFF7F2FA),
+            builder: (_) => const NewTaskBottomSheet(),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
       body: SafeArea(
         child: Padding(

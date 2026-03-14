@@ -18,35 +18,34 @@ class TaskOverviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Material(
-      color: colorScheme.surface,
-      borderRadius: BorderRadius.circular(12),
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            _ProgressRing(total: total, completed: completed),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _LegendItem(
-                    color: const Color(0xFF31CD84),
-                    label: 'Concluídas: $completed',
-                  ),
-                  const SizedBox(height: 10),
-                  _LegendItem(
-                    color: const Color(0xFFD9D2E9),
-                    label: 'Pendentes: $pending',
-                  ),
-                ],
-              ),
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          _ProgressRing(total: total, completed: completed),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _LegendItem(
+                  color: const Color(0xFF31CD84),
+                  label: 'Concluídas: $completed',
+                ),
+                const SizedBox(height: 10),
+                _LegendItem(
+                  color: const Color(0xFFD9D2E9),
+                  label: 'Pendentes: $pending',
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -60,7 +59,7 @@ class _ProgressRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = total <= 0 ? 0.0 : (completed / total).clamp(0.0, 1.0);
+    final progress = math.max(0.0, (completed / total));
 
     return SizedBox(
       width: 136,
