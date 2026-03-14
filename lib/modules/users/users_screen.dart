@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:task_radar/components/action_chip.dart';
 import 'package:task_radar/components/botton_navigator/navigation_bar_enum.dart';
 import 'package:task_radar/components/botton_navigator/task_radar_bottom_navigator.dart';
@@ -22,6 +23,37 @@ class UsersScreen extends StatefulWidget {
 }
 
 class _UsersScreenState extends State<UsersScreen> {
+  static const List<UsersViewData> _skeletonUsers = [
+    UsersViewData(
+      id: null,
+      fullName: 'Nome de usuário',
+      email: 'email@dominio.com',
+      role: UserType.admin,
+      photo: '',
+    ),
+    UsersViewData(
+      id: null,
+      fullName: 'Nome de usuário',
+      email: 'email@dominio.com',
+      role: UserType.admin,
+      photo: '',
+    ),
+    UsersViewData(
+      id: null,
+      fullName: 'Nome de usuário',
+      email: 'email@dominio.com',
+      role: UserType.moderator,
+      photo: '',
+    ),
+    UsersViewData(
+      id: null,
+      fullName: 'Nome de usuário',
+      email: 'email@dominio.com',
+      role: UserType.moderator,
+      photo: '',
+    ),
+  ];
+
   late final UsersBloc _usersBloc;
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounce;
@@ -70,10 +102,9 @@ class _UsersScreenState extends State<UsersScreen> {
         child: BlocBuilder<UsersBloc, UsersState>(
           bloc: _usersBloc,
           builder: (context, state) {
-            if (state.status == UsersStateStatus.loading ||
-                state.status == UsersStateStatus.initial) {
-              return const Center(child: CircularProgressIndicator.adaptive());
-            }
+            final isLoading =
+                state.status == UsersStateStatus.loading ||
+                state.status == UsersStateStatus.initial;
 
             if (state.status == UsersStateStatus.failure) {
               return Center(
@@ -88,7 +119,7 @@ class _UsersScreenState extends State<UsersScreen> {
               );
             }
 
-            final filteredUsers = state.visibleUsers;
+            final filteredUsers = isLoading ? _skeletonUsers : state.visibleUsers;
 
             final admins = filteredUsers.where((user) {
               return user.role == UserType.admin;
@@ -97,107 +128,125 @@ class _UsersScreenState extends State<UsersScreen> {
               return user.role == UserType.moderator;
             }).toList(growable: false);
 
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        Text(
-                          'Usuários',
-                          style: textTheme.headlineMedium?.copyWith(
-                            color: colorScheme.onSurface,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _searchController,
-                          onChanged: _onSearchChanged,
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.search),
-                            hintText: 'Pesquisar usuários',
-                            filled: true,
-                            fillColor: colorScheme.surfaceContainer,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(28),
-                              borderSide: BorderSide.none,
+            return Skeletonizer(
+              enabled: isLoading,
+              ignoreContainers: true,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 16),
+                          Text(
+                            'Usuários',
+                            style: textTheme.headlineMedium?.copyWith(
+                              color: colorScheme.onSurface,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
-                  ),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 32),
-                        FilterChipComponent(
-                          label: 'Todos',
-                          isSelected: state.filter == UsersFilter.all,
-                          onTap: () => _usersBloc.add(
-                            const UsersEventFilterChanged(UsersFilter.all),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        FilterChipComponent(
-                          label: 'Administradores',
-                          isSelected: state.filter == UsersFilter.admin,
-                          onTap: () => _usersBloc.add(
-                            const UsersEventFilterChanged(UsersFilter.admin),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        FilterChipComponent(
-                          label: 'Moderadores',
-                          isSelected: state.filter == UsersFilter.moderator,
-                          onTap: () => _usersBloc.add(
-                            const UsersEventFilterChanged(
-                              UsersFilter.moderator,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        _UsersSection(
-                          title: 'Administradores',
-                          users: admins,
-                          onTapUser: _openUserTasksBottomSheet,
-                        ),
-                        const SizedBox(height: 16),
-                        _UsersSection(
-                          title: 'Moderadores',
-                          users: moderators,
-                          onTapUser: _openUserTasksBottomSheet,
-                        ),
-                        if (filteredUsers.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 24),
-                            child: Center(
-                              child: Text(
-                                'Nenhum usuário encontrado.',
-                                style: textTheme.bodyMedium?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: _searchController,
+                            onChanged: isLoading ? null : _onSearchChanged,
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.search),
+                              hintText: 'Pesquisar usuários',
+                              filled: true,
+                              fillColor: colorScheme.surfaceContainer,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(28),
+                                borderSide: BorderSide.none,
                               ),
                             ),
                           ),
-                        const SizedBox(height: 120),
-                      ],
+                          const SizedBox(height: 16),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 32),
+                          FilterChipComponent(
+                            label: 'Todos',
+                            isSelected: state.filter == UsersFilter.all,
+                            onTap: isLoading
+                                ? () {}
+                                : () => _usersBloc.add(
+                                    const UsersEventFilterChanged(
+                                      UsersFilter.all,
+                                    ),
+                                  ),
+                          ),
+                          const SizedBox(width: 8),
+                          FilterChipComponent(
+                            label: 'Administradores',
+                            isSelected: state.filter == UsersFilter.admin,
+                            onTap: isLoading
+                                ? () {}
+                                : () => _usersBloc.add(
+                                    const UsersEventFilterChanged(
+                                      UsersFilter.admin,
+                                    ),
+                                  ),
+                          ),
+                          const SizedBox(width: 8),
+                          FilterChipComponent(
+                            label: 'Moderadores',
+                            isSelected: state.filter == UsersFilter.moderator,
+                            onTap: isLoading
+                                ? () {}
+                                : () => _usersBloc.add(
+                                    const UsersEventFilterChanged(
+                                      UsersFilter.moderator,
+                                    ),
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 16),
+                          _UsersSection(
+                            title: 'Administradores',
+                            users: admins,
+                            onTapUser: isLoading
+                                ? (_) {}
+                                : _openUserTasksBottomSheet,
+                          ),
+                          const SizedBox(height: 16),
+                          _UsersSection(
+                            title: 'Moderadores',
+                            users: moderators,
+                            onTapUser: isLoading
+                                ? (_) {}
+                                : _openUserTasksBottomSheet,
+                          ),
+                          if (!isLoading && filteredUsers.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 24),
+                              child: Center(
+                                child: Text(
+                                  'Nenhum usuário encontrado.',
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 120),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },
