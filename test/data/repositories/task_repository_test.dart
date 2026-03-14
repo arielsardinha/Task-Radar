@@ -9,12 +9,14 @@ import '../../mocks.mocks.dart';
 void main() {
   late MockDatabase database;
   late MockTransaction transaction;
+  late MockHttpServiceAdapter client;
   late TaskRepositoryImpl sut;
 
   setUp(() {
     database = MockDatabase();
     transaction = MockTransaction();
-    sut = TaskRepositoryImpl(database: database);
+    client = MockHttpServiceAdapter();
+    sut = TaskRepositoryImpl(database: database, client: client);
   });
 
   group('TaskRepositoryImpl.ensureSchema', () {

@@ -1,11 +1,20 @@
 import 'package:sqflite/sqflite.dart' show Database;
+import 'package:task_radar/data/network/http_service_adapter.dart';
 import 'package:task_radar/data/repositories/task_repository.dart';
+import 'package:task_radar/data/services/task_page_sync_service/task_page_sync_service.dart';
 import 'package:task_radar/domain/task.dart';
 
 final class TaskRepositoryImpl implements TaskRepository {
+  static const int _defaultPageSize = 30;
   final Database _db;
+  late final TaskPageSyncService _taskPageSyncService;
 
-  TaskRepositoryImpl({required Database database}) : _db = database;
+  TaskRepositoryImpl({
+    required Database database,
+    required HttpServiceAdapter client,
+    required TaskPageSyncService taskPageSyncService,
+  }) : _db = database,
+       _taskPageSyncService = taskPageSyncService;
 
   /// Garante a criacao do schema local usado pelo fluxo offline-first.
   ///
@@ -65,15 +74,16 @@ final class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
-  Future<List<Task>> getAllByUser({required int userId}) async {
-    final rows = await _db.query(
-      'tasks',
-      where: 'is_deleted = 0 AND user_id = ?',
-      whereArgs: [userId],
-      orderBy: 'updated_at DESC, remote_id DESC',
+  Future<List<Task>> getAllByUser({
+    required int userId,
+    int limit = _defaultPageSize,
+    int skip = 0,
+  }) async {
+    return _taskPageSyncService.getAllByUser(
+      userId: userId,
+      limit: limit,
+      skip: skip,
     );
-
-    return rows.map(Task.fromSqliteRow).toList();
   }
 
   @override
