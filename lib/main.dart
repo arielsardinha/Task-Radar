@@ -4,7 +4,6 @@ import 'package:task_radar/bindings.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/modules/splash/animation_splash.dart';
 import 'package:task_radar/routes/router_config.dart';
-import 'package:task_radar/routes/routes.dart';
 import 'package:task_radar/theme/app_theme.dart';
 
 Future<void> main() async {
@@ -39,14 +38,13 @@ class InitialAplication extends StatelessWidget {
   Widget build(BuildContext context) {
     return Provider<ProviderUser>(
       create: (_) => ProviderUser(),
-      child: MaterialApp(
-        initialRoute: Routes.login,
+      child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
         title: 'Task Radar',
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.system,
-        routes: AppRoutes.routes,
+        routerConfig: AppRoutes.router,
       ),
     );
   }

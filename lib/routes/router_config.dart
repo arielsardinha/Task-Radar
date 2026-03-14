@@ -1,8 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:task_radar/routes/modules/login/login_router.dart';
+import 'package:task_radar/routes/routes.dart';
 
 sealed class AppRoutes {
-  static final Map<String, WidgetBuilder> routes = {
-    ...LoginRouter.routes
-  };
+  static final GoRouter router = GoRouter(
+    initialLocation: Routes.login,
+    routes: [
+      ...LoginRouter.routes,
+    ],
+  );
 }
