@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:task_radar/bindings.dart';
+import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/modules/splash/animation_splash.dart';
 import 'package:task_radar/routes/router_config.dart';
 import 'package:task_radar/routes/routes.dart';
@@ -35,14 +37,17 @@ class InitialAplication extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      initialRoute: Routes.login,
-      debugShowCheckedModeBanner: false,
-      title: 'Task Radar',
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
-      routes: AppRoutes.routes,
+    return Provider<ProviderUser>(
+      create: (_) => ProviderUser(),
+      child: MaterialApp(
+        initialRoute: Routes.login,
+        debugShowCheckedModeBanner: false,
+        title: 'Task Radar',
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: ThemeMode.system,
+        routes: AppRoutes.routes,
+      ),
     );
   }
 }

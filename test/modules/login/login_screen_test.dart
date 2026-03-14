@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'dart:async';
+import 'package:provider/provider.dart';
 import 'package:task_radar/domain/user.dart';
+import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/modules/login/login_screen.dart';
 import 'package:task_radar/modules/login/view_models/login_view_model.dart';
 
@@ -33,7 +35,10 @@ void main() {
 
   Future<void> pumpLoginScreen(WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(home: LoginScreen(viewModel: viewModel)),
+      Provider<ProviderUser>(
+        create: (_) => ProviderUser(),
+        child: MaterialApp(home: LoginScreen(viewModel: viewModel)),
+      ),
     );
     await tester.pumpAndSettle();
   }

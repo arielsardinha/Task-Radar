@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/modules/login/view_models/login_view_model.dart';
 import 'package:validatorless/validatorless.dart';
 
@@ -36,10 +38,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     FocusScope.of(context).unfocus();
 
-    final success = await widget.viewModel.authenticate(username, password);
+    final user = await widget.viewModel.authenticate(username, password);
     if (!mounted) return;
 
-    if (success) {
+    if (user != null) {
+      context.read<ProviderUser>().user = user;
       TextInput.finishAutofillContext(shouldSave: true);
       return;
     }

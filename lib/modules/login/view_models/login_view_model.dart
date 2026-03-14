@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:task_radar/data/repositories/login_repository.dart';
+import 'package:task_radar/domain/user.dart';
 
 class LoginViewModel extends ChangeNotifier {
   LoginViewModel({required LoginRepository loginRepository})
@@ -17,16 +18,15 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> authenticate(String username, String password) async {
-    if (_isLoading) return false;
+  Future<User?> authenticate(String username, String password) async {
+    if (_isLoading) return null;
 
     _setLoading(true);
     try {
-      await _loginRepository.login(username, password);
-      return true;
+      return await _loginRepository.login(username, password);
     } catch (_) {
       notifyListeners();
-      return false;
+      return null;
     } finally {
       _setLoading(false);
     }
