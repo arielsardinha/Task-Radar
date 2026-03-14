@@ -1272,6 +1272,17 @@ class MockAuthRepository extends _i1.Mock implements _i11.AuthRepository {
 /// See the documentation for Mockito's code generation for more information.
 class MockTaskRepository extends _i1.Mock implements _i13.TaskRepository {
   @override
+  _i4.Future<List<_i14.Task>> getAllByUser({required int? userId}) =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllByUser, [], {#userId: userId}),
+            returnValue: _i4.Future<List<_i14.Task>>.value(<_i14.Task>[]),
+            returnValueForMissingStub: _i4.Future<List<_i14.Task>>.value(
+              <_i14.Task>[],
+            ),
+          )
+          as _i4.Future<List<_i14.Task>>);
+
+  @override
   _i4.Future<_i14.Task> create({
     required int? userId,
     required String? name,
