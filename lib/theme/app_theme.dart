@@ -59,49 +59,53 @@ sealed class AppTheme {
 
   static ThemeData get light => _buildTheme(
     brightness: Brightness.light,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: _seed,
-      brightness: Brightness.light,
-    ).copyWith(
-      primary: const Color(0xFF6750A4),
-      onPrimary: const Color(0xFFFFFFFF),
-      primaryContainer: const Color(0xFFEADDFF),
-      onPrimaryContainer: const Color(0xFF4F378A),
-      secondary: const Color(0xFF625B71),
-      onSecondary: const Color(0xFFFFFFFF),
-      secondaryContainer: const Color(0xFFE8DEF8),
-      onSecondaryContainer: const Color(0xFF4A4459),
-      error: const Color(0xFFB3261E),
-      onError: const Color(0xFFFFFFFF),
-      surface: const Color(0xFFFEF7FF),
-      onSurface: const Color(0xFF1D1B20),
-      onSurfaceVariant: const Color(0xFF49454F),
-      outline: const Color(0xFF79747E),
-      outlineVariant: const Color(0xFFCAC4D0),
-      surfaceContainer: const Color(0xFFF3EDF7),
-      inverseSurface: const Color(0xFF322F35),
-      onInverseSurface: const Color(0xFFF5EFF7),
-      inversePrimary: const Color(0xFFD0BCFF),
-      scrim: const Color(0xFF000000),
-    ),
+    chipTheme: ChipThemeData(surfaceTintColor: Colors.white),
+    colorScheme:
+        ColorScheme.fromSeed(
+          seedColor: _seed,
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: const Color(0xFF6750A4),
+          onPrimary: const Color(0xFFFFFFFF),
+          primaryContainer: const Color(0xFFEADDFF),
+          onPrimaryContainer: const Color(0xFF4F378A),
+          secondary: const Color(0xFF625B71),
+          onSecondary: const Color(0xFFFFFFFF),
+          secondaryContainer: const Color(0xFFE8DEF8),
+          onSecondaryContainer: const Color(0xFF4A4459),
+          error: const Color(0xFFB3261E),
+          onError: const Color(0xFFFFFFFF),
+          surface: const Color(0xFFFEF7FF),
+          onSurface: const Color(0xFF1D1B20),
+          onSurfaceVariant: const Color(0xFF49454F),
+          outline: const Color(0xFF79747E),
+          outlineVariant: const Color(0xFFCAC4D0),
+          surfaceContainer: const Color(0xFFF3EDF7),
+          inverseSurface: const Color(0xFF322F35),
+          onInverseSurface: const Color(0xFFF5EFF7),
+          inversePrimary: const Color(0xFFD0BCFF),
+          scrim: const Color(0xFF000000),
+        ),
     scaffoldBackground: _lightScaffold,
     semanticColors: _lightSemantic,
   );
 
   static ThemeData get dark => _buildTheme(
     brightness: Brightness.dark,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: _seed,
-      brightness: Brightness.dark,
-    ).copyWith(
-      surface: const Color(0xFF070417),
-      inverseSurface: const Color(0xFFEAE6F2),
-      onInverseSurface: const Color(0xFF322F35),
-      inversePrimary: const Color(0xFF6750A4),
-      scrim: const Color(0xFF000000),
-    ),
+    colorScheme:
+        ColorScheme.fromSeed(
+          seedColor: _seed,
+          brightness: Brightness.dark,
+        ).copyWith(
+          surface: const Color(0xFF070417),
+          inverseSurface: const Color(0xFFEAE6F2),
+          onInverseSurface: const Color(0xFF322F35),
+          inversePrimary: const Color(0xFF6750A4),
+          scrim: const Color(0xFF000000),
+        ),
     scaffoldBackground: _darkScaffold,
     semanticColors: _darkSemantic,
+    chipTheme: ChipThemeData(surfaceTintColor: Colors.black),
   );
 
   static ThemeData _buildTheme({
@@ -109,6 +113,7 @@ sealed class AppTheme {
     required ColorScheme colorScheme,
     required Color scaffoldBackground,
     required AppSemanticColors semanticColors,
+    required ChipThemeData chipTheme,
   }) {
     final base = ThemeData(
       useMaterial3: true,
@@ -116,6 +121,7 @@ sealed class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: scaffoldBackground,
       splashFactory: InkRipple.splashFactory,
+      chipTheme: chipTheme,
     );
 
     final textTheme = base.textTheme.copyWith(
@@ -160,7 +166,10 @@ sealed class AppTheme {
         labelStyle: textTheme.bodySmall,
         floatingLabelStyle: textTheme.bodySmall,
         hintStyle: textTheme.bodyLarge,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: colorScheme.outline),
@@ -196,7 +205,9 @@ sealed class AppTheme {
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(0, 56),
           side: BorderSide(color: colorScheme.outline),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           foregroundColor: colorScheme.onSurface,
           textStyle: textTheme.titleMedium,
         ),
@@ -221,13 +232,17 @@ sealed class AppTheme {
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-            color: selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+            color: selected
+                ? colorScheme.primary
+                : colorScheme.onSurfaceVariant,
           );
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return (textTheme.bodySmall ?? const TextStyle()).copyWith(
-            color: selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+            color: selected
+                ? colorScheme.primary
+                : colorScheme.onSurfaceVariant,
           );
         }),
       ),

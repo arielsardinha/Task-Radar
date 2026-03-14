@@ -188,10 +188,7 @@ class _TasksScreenState extends State<TasksScreen> {
                       }
                     },
                     itemBuilder: (context) => const [
-                      PopupMenuItem(
-                        value: 'default',
-                        child: Text('Padrão'),
-                      ),
+                      PopupMenuItem(value: 'default', child: Text('Padrão')),
                       PopupMenuItem(
                         value: 'alpha',
                         child: Text('Alfabética (texto)'),
@@ -368,13 +365,7 @@ class _TaskItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final semanticColors =
-        Theme.of(context).extension<AppSemanticColors>() ??
-        const AppSemanticColors(
-          success: Color(0xFF31CD84),
-          successContainer: Color(0x1F31CD84),
-          pending: Color(0xFFD9D2E9),
-        );
+    final semanticColors = Theme.of(context).extension<AppSemanticColors>()!;
     final isCompleted = task.status == TaskStatus.completed;
 
     return Hero(
@@ -402,12 +393,14 @@ class _TaskItem extends StatelessWidget {
         ),
         child: Container(
           margin: const EdgeInsets.only(bottom: 8),
-          decoration: BoxDecoration(color: colorScheme.surfaceContainerHigh),
+          decoration: BoxDecoration(color: colorScheme.surface),
           child: ListTile(
             onTap: () => onTap(task),
             leading: Icon(
               isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: isCompleted ? semanticColors.success : colorScheme.onSurface,
+              color: isCompleted
+                  ? semanticColors.success
+                  : colorScheme.onSurface,
             ),
             title: Text(task.name),
             subtitle: task.description.trim().isEmpty
@@ -446,7 +439,7 @@ class _FilterChip extends StatelessWidget {
       side: BorderSide(color: colorScheme.outlineVariant),
       backgroundColor: isSelected
           ? colorScheme.secondaryContainer
-          : Colors.transparent,
+          : colorScheme.surface,
       labelStyle: TextStyle(
         color: isSelected
             ? colorScheme.onSecondaryContainer
