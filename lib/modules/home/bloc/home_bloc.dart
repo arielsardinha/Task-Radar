@@ -17,6 +17,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
        _storage = storage,
        super(const HomeStateInitial()) {
     on<HomeEventLoadOverview>(_onLoadOverview);
+    on<HomeEventCreateTask>(_onCreateTask);
   }
 
   Future<void> _onLoadOverview(
@@ -44,6 +45,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           message: 'Falha ao carregar o resumo de tarefas.',
         ),
       );
+    }
+  }
+
+  Future<void> _onCreateTask(
+    HomeEventCreateTask event,
+    Emitter<HomeState> emit,
+  ) async {
+    try {
+      final me = (await _storage.getItemToFactory(
+        StorageSecureEnum.auth_user,
+        fromJson: MeModel.fromJson,
+      ))!;
+
+      await _taskRepository.create(
+        userId: me.id!,
+        name: event.name,
+        description: event.description,
+      );
+
+      add(HomeEventLoadOverview());
+    } catch (_) {
+      emit(const HomeStateFailure(message: 'Falha ao criar tarefa.'));
     }
   }
 }
