@@ -65,5 +65,22 @@ void main() {
       expect(authData['refresh_token'], isA<String>());
       expect((authData['refresh_token'] as String).isNotEmpty, isTrue);
     });
+
+    test(
+      'deve realizar refresh da sessao com sucesso e persistir dados do token',
+      () async {
+        await sut.login(loginUsername, loginPassword);
+
+        final user = await sut.refreshSession();
+
+        final authData = await storage.getItem(StorageSecureEnum.auth_jwt);
+        expect(user, isNotNull);
+        expect(authData, isNotNull);
+        expect(authData!['token'], isA<String>());
+        expect((authData['token'] as String).isNotEmpty, isTrue);
+        expect(authData['refresh_token'], isA<String>());
+        expect((authData['refresh_token'] as String).isNotEmpty, isTrue);
+      },
+    );
   });
 }
