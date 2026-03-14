@@ -369,7 +369,15 @@ class _TaskItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final semanticColors = Theme.of(context).extension<AppSemanticColors>()!;
+    @visibleForTesting
+    final appSemanticColors = const AppSemanticColors(
+      success: Colors.green,
+      successContainer: Color(0x1A4CAF50),
+      pending: Color(0xFFD9D2E9),
+    );
+    final semanticColors =
+        Theme.of(context).extension<AppSemanticColors>() ?? appSemanticColors;
+
     final isCompleted = task.status == TaskStatus.completed;
 
     return Hero(

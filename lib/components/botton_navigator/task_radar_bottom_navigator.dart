@@ -53,8 +53,8 @@ class TaskRadarBottomNavigator extends StatelessWidget {
   }
 
   List<NavigationBarEnum> _navigationItems(BuildContext context) {
-    final user = context.read<ProviderUser>().user;
-    final isAdmin = user.userType == UserType.admin;
+    final providerUser = Provider.of<ProviderUser?>(context, listen: false);
+    final isAdmin = providerUser?.user.userType == UserType.admin;
 
     if (isAdmin) {
       return const [
