@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:task_radar/components/botton_navigator/navigation_bar_enum.dart';
+import 'package:task_radar/domain/user.dart';
+import 'package:task_radar/global/providers/provider_user.dart';
+import 'package:provider/provider.dart';
 
 class TaskRadarBottomNavigator extends StatelessWidget {
   final NavigationBarEnum page;
@@ -11,6 +14,7 @@ class TaskRadarBottomNavigator extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final items = _navigationItems(context);
 
     return SafeArea(
       top: false,
@@ -23,7 +27,7 @@ class TaskRadarBottomNavigator extends StatelessWidget {
           borderRadius: BorderRadius.circular(80),
         ),
         child: Row(
-          children: NavigationBarEnum.values
+          children: items
               .map(
                 (item) => Expanded(
                   child: _NavigationItem(
@@ -46,6 +50,26 @@ class TaskRadarBottomNavigator extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<NavigationBarEnum> _navigationItems(BuildContext context) {
+    final user = context.read<ProviderUser>().user;
+    final isAdmin = user.userType == UserType.admin;
+
+    if (isAdmin) {
+      return const [
+        NavigationBarEnum.home,
+        NavigationBarEnum.tasks,
+        NavigationBarEnum.users,
+        NavigationBarEnum.profile,
+      ];
+    }
+
+    return const [
+      NavigationBarEnum.home,
+      NavigationBarEnum.tasks,
+      NavigationBarEnum.profile,
+    ];
   }
 }
 
@@ -71,12 +95,14 @@ class _NavigationItem extends StatelessWidget {
     final label = switch (item) {
       NavigationBarEnum.home => 'Início',
       NavigationBarEnum.tasks => 'Tarefas',
+      NavigationBarEnum.users => 'Usuários',
       NavigationBarEnum.profile => 'Perfil',
     };
 
     final icon = switch (item) {
       NavigationBarEnum.home => Icons.home_outlined,
       NavigationBarEnum.tasks => Icons.task_alt_outlined,
+      NavigationBarEnum.users => Icons.group_outlined,
       NavigationBarEnum.profile => Icons.account_circle_outlined,
     };
 

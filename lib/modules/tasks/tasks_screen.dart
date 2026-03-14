@@ -100,38 +100,41 @@ class _TasksScreenState extends State<TasksScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      _FilterChip(
-                        label: 'Todas',
-                        isSelected: state.filter == TaskListFilter.all,
-                        onTap: () {
-                          _tasksBloc.add(
-                            TasksEventFilterChanged(TaskListFilter.all),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      _FilterChip(
-                        label: 'Pendentes',
-                        isSelected: state.filter == TaskListFilter.pending,
-                        onTap: () {
-                          _tasksBloc.add(
-                            TasksEventFilterChanged(TaskListFilter.pending),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      _FilterChip(
-                        label: 'Concluídas',
-                        isSelected: state.filter == TaskListFilter.completed,
-                        onTap: () {
-                          _tasksBloc.add(
-                            TasksEventFilterChanged(TaskListFilter.completed),
-                          );
-                        },
-                      ),
-                    ],
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _FilterChip(
+                          label: 'Todas',
+                          isSelected: state.filter == TaskListFilter.all,
+                          onTap: () {
+                            _tasksBloc.add(
+                              TasksEventFilterChanged(TaskListFilter.all),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        _FilterChip(
+                          label: 'Pendentes',
+                          isSelected: state.filter == TaskListFilter.pending,
+                          onTap: () {
+                            _tasksBloc.add(
+                              TasksEventFilterChanged(TaskListFilter.pending),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        _FilterChip(
+                          label: 'Concluídas',
+                          isSelected: state.filter == TaskListFilter.completed,
+                          onTap: () {
+                            _tasksBloc.add(
+                              TasksEventFilterChanged(TaskListFilter.completed),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
                   if (state.hasActiveIndicators)

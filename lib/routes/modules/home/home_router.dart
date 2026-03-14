@@ -3,12 +3,15 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:task_radar/data/repositories/task_repository_impl.dart';
 import 'package:task_radar/data/storage/storage_impl.dart';
+import 'package:task_radar/domain/user.dart';
+import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/modules/home/bloc/home_bloc.dart';
 import 'package:task_radar/modules/home/home_screen.dart';
 import 'package:task_radar/modules/profile/bloc/profile_bloc.dart';
 import 'package:task_radar/modules/profile/profile_screen.dart';
 import 'package:task_radar/modules/tasks/bloc/tasks_bloc.dart';
 import 'package:task_radar/modules/tasks/tasks_screen.dart';
+import 'package:task_radar/modules/users/users_screen.dart';
 import 'package:task_radar/routes/routes.dart';
 
 sealed class HomeRouter {
@@ -49,6 +52,29 @@ sealed class HomeRouter {
           child: ProfileScreen(storage: GetIt.instance.get<StorageImpl>()),
         ),
       ),
+    ),
+    GoRoute(
+      path: Routes.users,
+      pageBuilder: (context, state) {
+        final isAdmin =
+            context.read<ProviderUser>().user.userType == UserType.admin;
+
+        if (!isAdmin) {
+          return NoTransitionPage<void>(
+            key: state.pageKey,
+            child: Provider<ProfileBloc>(
+              create: (_) =>
+                  ProfileBloc(storage: GetIt.instance.get<StorageImpl>()),
+              child: ProfileScreen(storage: GetIt.instance.get<StorageImpl>()),
+            ),
+          );
+        }
+
+        return NoTransitionPage<void>(
+          key: state.pageKey,
+          child: const UsersScreen(),
+        );
+      },
     ),
   ];
 }

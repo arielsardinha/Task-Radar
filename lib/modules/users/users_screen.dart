@@ -13,8 +13,6 @@ import 'package:provider/provider.dart';
 
 enum UsersFilter { all, admin, moderator }
 
-enum UserTasksFilter { all, pending, completed }
-
 class UsersScreen extends StatefulWidget {
   const UsersScreen({super.key});
 
@@ -112,88 +110,106 @@ class _UsersScreenState extends State<UsersScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16),
-              Text(
-                'Usuários',
-                style: textTheme.headlineMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _searchController,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search),
-                  hintText: 'Pesquisar usuários',
-                  filled: true,
-                  fillColor: colorScheme.surfaceContainer,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(28),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  _UsersFilterChip(
-                    label: 'Todos',
-                    selected: _usersFilter == UsersFilter.all,
-                    onTap: () => setState(() => _usersFilter = UsersFilter.all),
-                  ),
-                  const SizedBox(width: 8),
-                  _UsersFilterChip(
-                    label: 'Administradores',
-                    selected: _usersFilter == UsersFilter.admin,
-                    onTap: () =>
-                        setState(() => _usersFilter = UsersFilter.admin),
-                  ),
-                  const SizedBox(width: 8),
-                  _UsersFilterChip(
-                    label: 'Moderadores',
-                    selected: _usersFilter == UsersFilter.moderator,
-                    onTap: () =>
-                        setState(() => _usersFilter = UsersFilter.moderator),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _UsersSection(
-                title: 'Administradores',
-                users: admins,
-                onTapUser: _openUserTasksBottomSheet,
-              ),
-              const SizedBox(height: 16),
-              _UsersSection(
-                title: 'Moderadores',
-                users: moderators,
-                onTapUser: _openUserTasksBottomSheet,
-              ),
-              if (filteredUsers.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 24),
-                  child: Center(
-                    child: Text(
-                      'Nenhum usuário encontrado.',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    Text(
+                      'Usuários',
+                      style: textTheme.headlineMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _searchController,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.search),
+                        hintText: 'Pesquisar usuários',
+                        filled: true,
+                        fillColor: colorScheme.surfaceContainer,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(28),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                 ),
-              const SizedBox(height: 120),
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    const SizedBox(width: 32),
+                    _UsersFilterChip(
+                      label: 'Todos',
+                      selected: _usersFilter == UsersFilter.all,
+                      onTap: () =>
+                          setState(() => _usersFilter = UsersFilter.all),
+                    ),
+                    const SizedBox(width: 8),
+                    _UsersFilterChip(
+                      label: 'Administradores',
+                      selected: _usersFilter == UsersFilter.admin,
+                      onTap: () =>
+                          setState(() => _usersFilter = UsersFilter.admin),
+                    ),
+                    const SizedBox(width: 8),
+                    _UsersFilterChip(
+                      label: 'Moderadores',
+                      selected: _usersFilter == UsersFilter.moderator,
+                      onTap: () =>
+                          setState(() => _usersFilter = UsersFilter.moderator),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    _UsersSection(
+                      title: 'Administradores',
+                      users: admins,
+                      onTapUser: _openUserTasksBottomSheet,
+                    ),
+                    const SizedBox(height: 16),
+                    _UsersSection(
+                      title: 'Moderadores',
+                      users: moderators,
+                      onTapUser: _openUserTasksBottomSheet,
+                    ),
+                    if (filteredUsers.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 24),
+                        child: Center(
+                          child: Text(
+                            'Nenhum usuário encontrado.',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 120),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ),
       bottomNavigationBar: const TaskRadarBottomNavigator(
-        page: NavigationBarEnum.profile,
+        page: NavigationBarEnum.users,
       ),
     );
   }
@@ -325,7 +341,6 @@ class _UserTasksBottomSheet extends StatefulWidget {
 }
 
 class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
-  UserTasksFilter _filter = UserTasksFilter.all;
   late final Future<List<Task>> _tasksFuture;
 
   @override
@@ -381,28 +396,11 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Row(
-                children: [
-                  _TaskFilterChip(
-                    label: 'Todas',
-                    selected: _filter == UserTasksFilter.all,
-                    onTap: () => setState(() => _filter = UserTasksFilter.all),
-                  ),
-                  const SizedBox(width: 8),
-                  _TaskFilterChip(
-                    label: 'Pendentes',
-                    selected: _filter == UserTasksFilter.pending,
-                    onTap: () =>
-                        setState(() => _filter = UserTasksFilter.pending),
-                  ),
-                  const SizedBox(width: 8),
-                  _TaskFilterChip(
-                    label: 'Concluídas',
-                    selected: _filter == UserTasksFilter.completed,
-                    onTap: () =>
-                        setState(() => _filter = UserTasksFilter.completed),
-                  ),
-                ],
+              child: Text(
+                'Tarefas do usuário',
+                style: textTheme.titleSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
             const SizedBox(height: 8),
@@ -429,17 +427,9 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
                     );
                   }
 
-                  final tasks = (snapshot.data ?? const <Task>[])
-                      .where((task) {
-                        return switch (_filter) {
-                          UserTasksFilter.all => true,
-                          UserTasksFilter.pending =>
-                            task.status == TaskStatus.pending,
-                          UserTasksFilter.completed =>
-                            task.status == TaskStatus.completed,
-                        };
-                      })
-                      .toList(growable: false);
+                  final tasks = (snapshot.data ?? const <Task>[]).toList(
+                    growable: false,
+                  );
 
                   if (tasks.isEmpty) {
                     return Center(
@@ -491,39 +481,6 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _TaskFilterChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _TaskFilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return ActionChip(
-      label: Text(label),
-      onPressed: onTap,
-      avatar: selected ? const Icon(Icons.check, size: 16) : null,
-      side: BorderSide(color: colorScheme.outlineVariant),
-      backgroundColor: selected
-          ? colorScheme.secondaryContainer
-          : Colors.transparent,
-      labelStyle: TextStyle(
-        color: selected
-            ? colorScheme.onSecondaryContainer
-            : colorScheme.onSurfaceVariant,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
   }
 }
