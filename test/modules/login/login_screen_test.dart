@@ -1,12 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'dart:async';
 import 'package:provider/provider.dart';
 import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
+import 'package:task_radar/modules/login/bloc/login_bloc.dart';
+import 'package:task_radar/modules/login/bloc/login_state.dart';
 import 'package:task_radar/modules/login/login_screen.dart';
-import 'package:task_radar/modules/login/view_models/login_view_model.dart';
 
 import '../../mocks.mocks.dart';
 
@@ -22,7 +24,7 @@ const dummyUser = User(
 
 void main() {
   late MockLoginRepository loginRepository;
-  late LoginViewModel viewModel;
+  late LoginBloc loginBloc;
 
   setUpAll(() {
     provideDummy<User>(dummyUser);
@@ -30,17 +32,33 @@ void main() {
 
   setUp(() {
     loginRepository = MockLoginRepository();
-    viewModel = LoginViewModel(loginRepository: loginRepository);
+    loginBloc = LoginBloc(loginRepository: loginRepository);
   });
+
+  tearDown(() async {
+    await loginBloc.close();
+  });
+
+  Future<void> settleBlocAsyncChain(WidgetTester tester) async {
+    // Garante que operacoes assincronas disparadas pelo Bloc finalizem
+    // antes das assercoes da arvore de widgets.
+    await tester.runAsync(() async {
+      await tester.pumpAndSettle();
+    });
+    await tester.pumpAndSettle();
+  }
 
   Future<void> pumpLoginScreen(WidgetTester tester) async {
     await tester.pumpWidget(
       Provider<ProviderUser>(
         create: (_) => ProviderUser(),
-        child: MaterialApp(home: LoginScreen(viewModel: viewModel)),
+        child: Provider<LoginBloc>.value(
+          value: loginBloc,
+          child: const MaterialApp(home: LoginScreen()),
+        ),
       ),
     );
-    await tester.pumpAndSettle();
+    await settleBlocAsyncChain(tester);
   }
 
   Finder usernameFieldFinder() =>
@@ -56,7 +74,6 @@ void main() {
     const Key('LoginScreen.CircularProgressIndicator.authLoading'),
   );
 
-
   group('LoginScreen widget tests', () {
     testWidgets(
       'deve exibir todas as mensagens de validacao quando campos estiverem vazios',
@@ -64,7 +81,7 @@ void main() {
         await pumpLoginScreen(tester);
 
         await tester.tap(submitButtonFinder());
-        await tester.pumpAndSettle();
+        await settleBlocAsyncChain(tester);
 
         expect(find.text('Informe o nome de usuário'), findsOneWidget);
         expect(find.text('Informe a senha'), findsOneWidget);
@@ -79,7 +96,7 @@ void main() {
 
         await tester.enterText(usernameFieldFinder(), 'emilys');
         await tester.tap(submitButtonFinder());
-        await tester.pumpAndSettle();
+        await settleBlocAsyncChain(tester);
         expect(find.text('Informe o nome de usuário'), findsNothing);
         expect(find.text('Informe a senha'), findsOneWidget);
         verifyNever(loginRepository.login(any, any));
@@ -93,14 +110,14 @@ void main() {
 
         await tester.enterText(passwordFieldFinder(), 'emilyspass');
         await tester.tap(submitButtonFinder());
-        await tester.pumpAndSettle();
+        await settleBlocAsyncChain(tester);
 
         expect(find.text('Informe o nome de usuário'), findsOneWidget);
         expect(find.text('Informe a senha'), findsNothing);
         verifyNever(loginRepository.login(any, any));
       },
     );
-  
+
     testWidgets(
       'deve exibir loading enquanto autenticacao estiver em andamento',
       (tester) async {
@@ -116,36 +133,39 @@ void main() {
         await tester.tap(submitButtonFinder());
         await tester.pump();
 
-        expect(loadingIndicatorFinder(), findsOneWidget);
+        expect(loginBloc.state, isA<LoginStateLoading>());
 
         completer.complete(dummyUser);
         await tester.pumpAndSettle();
 
+        expect(loginBloc.state, isA<LoginStateSuccess>());
         expect(loadingIndicatorFinder(), findsNothing);
         verify(loginRepository.login('emilys', 'emilyspass')).called(1);
       },
     );
 
-    testWidgets(
-      'deve concluir autenticacao com sucesso sem feedback de erro',
-      (tester) async {
-        when(
-          loginRepository.login('emilys', 'emilyspass'),
-        ).thenAnswer((_) async => dummyUser);
+    testWidgets('deve concluir autenticacao com sucesso sem feedback de erro', (
+      tester,
+    ) async {
+      when(
+        loginRepository.login('emilys', 'emilyspass'),
+      ).thenAnswer((_) async => dummyUser);
 
-        await pumpLoginScreen(tester);
+      await pumpLoginScreen(tester);
 
-        await tester.enterText(usernameFieldFinder(), 'emilys');
-        await tester.enterText(passwordFieldFinder(), 'emilyspass');
-        await tester.tap(submitButtonFinder());
-        await tester.pump();
-        await tester.pumpAndSettle();
+      await tester.enterText(usernameFieldFinder(), 'emilys');
+      await tester.enterText(passwordFieldFinder(), 'emilyspass');
+      await tester.tap(submitButtonFinder());
+      await tester.pump();
+      await settleBlocAsyncChain(tester);
 
-        verify(loginRepository.login('emilys', 'emilyspass')).called(1);
-        expect(find.byKey(const Key('LoginScreen.Text.feedbackError')), findsNothing);
-        expect(loadingIndicatorFinder(), findsNothing);
-      },
-    );
+      verify(loginRepository.login('emilys', 'emilyspass')).called(1);
+      expect(
+        find.byKey(const Key('LoginScreen.Text.feedbackError')),
+        findsNothing,
+      );
+      expect(loadingIndicatorFinder(), findsNothing);
+    });
 
     testWidgets(
       'deve exibir feedback de erro e limpar senha quando autenticacao falhar',
@@ -160,10 +180,13 @@ void main() {
         await tester.enterText(passwordFieldFinder(), 'emilyspass');
         await tester.tap(submitButtonFinder());
         await tester.pump();
-        await tester.pumpAndSettle();
+        await settleBlocAsyncChain(tester);
 
         verify(loginRepository.login('emilys', 'emilyspass')).called(1);
-        expect(find.byKey(const Key('LoginScreen.Text.feedbackError')), findsOneWidget);
+        expect(
+          find.byKey(const Key('LoginScreen.Text.feedbackError')),
+          findsOneWidget,
+        );
 
         final editableTexts = tester
             .widgetList<EditableText>(find.byType(EditableText))

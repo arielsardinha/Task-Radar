@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
-import 'package:task_radar/modules/login/view_models/login_view_model.dart';
+import 'package:task_radar/modules/login/bloc/login_bloc.dart';
+import 'package:task_radar/modules/login/bloc/login_event.dart';
+import 'package:task_radar/modules/login/bloc/login_state.dart';
 import 'package:validatorless/validatorless.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.viewModel});
-
-  final LoginViewModel viewModel;
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -38,42 +39,49 @@ class _LoginScreenState extends State<LoginScreen> {
 
     FocusScope.of(context).unfocus();
 
-    final user = await widget.viewModel.authenticate(username, password);
-    if (!mounted) return;
-
-    if (user != null) {
-      context.read<ProviderUser>().user = user;
-      TextInput.finishAutofillContext(shouldSave: true);
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Falha ao realizar login. Verifique suas credenciais e tente novamente.',
-          key: Key('LoginScreen.Text.feedbackError'),
-        ),
-      ),
+    context.read<LoginBloc>().add(
+      LoginEventSubmit(username: username, password: password),
     );
-    TextInput.finishAutofillContext(shouldSave: false);
-    _passwordController.clear();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _passwordFocusNode.requestFocus();
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final loginBloc = context.read<LoginBloc>();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
-        child: AnimatedBuilder(
-          animation: widget.viewModel,
-          builder: (context, _) {
+        child: BlocConsumer<LoginBloc, LoginState>(
+          bloc: loginBloc,
+          listenWhen: (previous, current) =>
+              current is LoginStateFailure || current is LoginStateSuccess,
+          listener: (context, state) {
+            if (state is LoginStateSuccess) {
+              context.read<ProviderUser>().user = state.user;
+              TextInput.finishAutofillContext(shouldSave: true);
+            }
+
+            if (state is LoginStateFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    state.message,
+                    key: const Key('LoginScreen.Text.feedbackError'),
+                  ),
+                ),
+              );
+              TextInput.finishAutofillContext(shouldSave: false);
+              _passwordController.clear();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                _passwordFocusNode.requestFocus();
+              });
+            }
+          },
+          builder: (context, state) {
+            final isLoading = state is LoginStateLoading;
             return LayoutBuilder(
               builder: (context, constraints) {
                 final horizontalPadding = constraints.maxWidth < 360
@@ -98,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 400),
                         curve: Curves.easeInOut,
-                        height: !widget.viewModel.isLoading ? null : 0,
+                        height: !isLoading ? null : 0,
                         child: AutofillGroup(
                           child: Form(
                             key: _formKey,
@@ -110,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   controller: _usernameController,
                                   focusNode: _usernameFocusNode,
-                                  enabled: !widget.viewModel.isLoading,
+                                  enabled: !isLoading,
                                   textInputAction: TextInputAction.next,
                                   keyboardType: TextInputType.text,
                                   textCapitalization: TextCapitalization.none,
@@ -143,14 +151,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   controller: _passwordController,
                                   focusNode: _passwordFocusNode,
-                                  enabled: !widget.viewModel.isLoading,
+                                  enabled: !isLoading,
                                   textInputAction: TextInputAction.done,
                                   keyboardType: TextInputType.visiblePassword,
                                   textCapitalization: TextCapitalization.none,
                                   autocorrect: false,
                                   enableSuggestions: false,
                                   enableIMEPersonalizedLearning: false,
-                                  obscureText: widget.viewModel.obscurePassword,
+                                  obscureText: state.obscurePassword,
                                   autofillHints: const [AutofillHints.password],
                                   inputFormatters: [
                                     LengthLimitingTextInputFormatter(128),
@@ -165,13 +173,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                     labelText: 'Senha',
                                     hintText: 'Digite sua senha',
                                     suffixIcon: IconButton(
-                                      onPressed: widget.viewModel.isLoading
+                                      onPressed: isLoading
                                           ? null
-                                          : widget
-                                                .viewModel
-                                                .togglePasswordVisibility,
+                                          : () => context.read<LoginBloc>().add(
+                                                LoginEventTogglePasswordVisibility(),
+                                              ),
                                       icon: Icon(
-                                        widget.viewModel.obscurePassword
+                                        state.obscurePassword
                                             ? Icons.visibility_outlined
                                             : Icons.visibility_off_outlined,
                                       ),
@@ -188,13 +196,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   key: const Key(
                                     'LoginScreen.ElevatedButton.submit',
                                   ),
-                                  onPressed: widget.viewModel.isLoading
+                                  onPressed: isLoading
                                       ? null
                                       : () => _submit(
                                           _usernameController.text,
                                           _passwordController.text,
                                         ),
-                                  child: widget.viewModel.isLoading
+                                  child: isLoading
                                       ? SizedBox(
                                           width: 22,
                                           height: 22,
@@ -211,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       Visibility(
-                        visible: widget.viewModel.isLoading,
+                        visible: isLoading,
                         child: const Center(
                           child: CircularProgressIndicator.adaptive(
                             key: Key(
