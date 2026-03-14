@@ -9,14 +9,27 @@ import 'package:task_radar/modules/home/bloc/home_state.dart';
 import 'package:task_radar/modules/home/components/new_task_bottom_sheet.dart';
 import 'package:task_radar/modules/home/components/task_overview_card.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late final HomeBloc _homeBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _homeBloc = context.read<HomeBloc>();
+    _homeBloc.add(HomeEventLoadOverview());
+  }
 
   @override
   Widget build(BuildContext context) {
     final user = context.read<ProviderUser>();
     final firstName = user.user.fullName;
-    final homeBloc = context.read<HomeBloc>();
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -29,7 +42,7 @@ class HomeScreen extends StatelessWidget {
             backgroundColor: const Color(0xFFF7F2FA),
             builder: (_) => NewTaskBottomSheet(
               onSubmit: ({required name, required description}) async {
-                homeBloc.add(
+                _homeBloc.add(
                   HomeEventCreateTask(name: name, description: description),
                 );
               },
@@ -93,7 +106,7 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               BlocBuilder<HomeBloc, HomeState>(
-                bloc: homeBloc,
+                bloc: _homeBloc,
                 builder: (context, state) {
                   return switch (state) {
                     HomeStateLoading() || HomeStateInitial() => const Center(

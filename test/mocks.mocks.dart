@@ -6,16 +6,20 @@
 import 'dart:async' as _i4;
 
 import 'package:dio/dio.dart' as _i2;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i9;
-import 'package:sqflite_common/sql.dart' as _i12;
+import 'package:mockito/src/dummies.dart' as _i10;
+import 'package:sqflite_common/sql.dart' as _i15;
 import 'package:sqflite_common/sqlite_api.dart' as _i3;
-import 'package:task_radar/data/adapter/request_adapter.dart' as _i8;
-import 'package:task_radar/data/adapter/response_adapter.dart' as _i7;
-import 'package:task_radar/data/network/http_service_adapter.dart' as _i6;
-import 'package:task_radar/data/repositories/auth_repository.dart' as _i10;
-import 'package:task_radar/data/storage/storage.dart' as _i5;
-import 'package:task_radar/domain/user.dart' as _i11;
+import 'package:task_radar/data/adapter/request_adapter.dart' as _i9;
+import 'package:task_radar/data/adapter/response_adapter.dart' as _i8;
+import 'package:task_radar/data/network/http_service_adapter.dart' as _i7;
+import 'package:task_radar/data/repositories/auth_repository.dart' as _i11;
+import 'package:task_radar/data/repositories/task_repository.dart' as _i13;
+import 'package:task_radar/data/storage/storage.dart' as _i6;
+import 'package:task_radar/data/storage/storage_impl.dart' as _i16;
+import 'package:task_radar/domain/task.dart' as _i14;
+import 'package:task_radar/domain/user.dart' as _i12;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -83,11 +87,17 @@ class _FakeBatch_9 extends _i1.SmartFake implements _i3.Batch {
     : super(parent, parentInvocation);
 }
 
+class _FakeFlutterSecureStorage_10 extends _i1.SmartFake
+    implements _i5.FlutterSecureStorage {
+  _FakeFlutterSecureStorage_10(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [Storage].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockStorage<T extends _i5.StorageEnum<Object>> extends _i1.Mock
-    implements _i5.Storage<T> {
+class MockStorage<T extends _i6.StorageEnum<Object>> extends _i1.Mock
+    implements _i6.Storage<T> {
   @override
   _i4.Future<void> setItem(T? key, Map<String, dynamic>? data) =>
       (super.noSuchMethod(
@@ -127,7 +137,7 @@ class MockStorage<T extends _i5.StorageEnum<Object>> extends _i1.Mock
 
   @override
   _i4.Future<B?>
-  getItemToFactory<B extends Object, C extends _i5.StorageEnum<B>>(
+  getItemToFactory<B extends Object, C extends _i6.StorageEnum<B>>(
     C? key, {
     required B Function(Map<String, dynamic>)? fromJson,
   }) =>
@@ -143,44 +153,44 @@ class MockStorage<T extends _i5.StorageEnum<Object>> extends _i1.Mock
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockHttpServiceAdapter extends _i1.Mock
-    implements _i6.HttpServiceAdapter {
+    implements _i7.HttpServiceAdapter {
   @override
-  _i4.Future<_i7.ResponseAdapter<T>> get<T>(_i8.RequestAdapter? request) =>
+  _i4.Future<_i8.ResponseAdapter<T>> get<T>(_i9.RequestAdapter? request) =>
       (super.noSuchMethod(
             Invocation.method(#get, [request]),
-            returnValue: _i4.Future<_i7.ResponseAdapter<T>>.value(
-              _i9.dummyValue<_i7.ResponseAdapter<T>>(
+            returnValue: _i4.Future<_i8.ResponseAdapter<T>>.value(
+              _i10.dummyValue<_i8.ResponseAdapter<T>>(
                 this,
                 Invocation.method(#get, [request]),
               ),
             ),
-            returnValueForMissingStub: _i4.Future<_i7.ResponseAdapter<T>>.value(
-              _i9.dummyValue<_i7.ResponseAdapter<T>>(
+            returnValueForMissingStub: _i4.Future<_i8.ResponseAdapter<T>>.value(
+              _i10.dummyValue<_i8.ResponseAdapter<T>>(
                 this,
                 Invocation.method(#get, [request]),
               ),
             ),
           )
-          as _i4.Future<_i7.ResponseAdapter<T>>);
+          as _i4.Future<_i8.ResponseAdapter<T>>);
 
   @override
-  _i4.Future<_i7.ResponseAdapter<T>> post<T>(_i8.RequestAdapter? request) =>
+  _i4.Future<_i8.ResponseAdapter<T>> post<T>(_i9.RequestAdapter? request) =>
       (super.noSuchMethod(
             Invocation.method(#post, [request]),
-            returnValue: _i4.Future<_i7.ResponseAdapter<T>>.value(
-              _i9.dummyValue<_i7.ResponseAdapter<T>>(
+            returnValue: _i4.Future<_i8.ResponseAdapter<T>>.value(
+              _i10.dummyValue<_i8.ResponseAdapter<T>>(
                 this,
                 Invocation.method(#post, [request]),
               ),
             ),
-            returnValueForMissingStub: _i4.Future<_i7.ResponseAdapter<T>>.value(
-              _i9.dummyValue<_i7.ResponseAdapter<T>>(
+            returnValueForMissingStub: _i4.Future<_i8.ResponseAdapter<T>>.value(
+              _i10.dummyValue<_i8.ResponseAdapter<T>>(
                 this,
                 Invocation.method(#post, [request]),
               ),
             ),
           )
-          as _i4.Future<_i7.ResponseAdapter<T>>);
+          as _i4.Future<_i8.ResponseAdapter<T>>);
 
   @override
   _i4.Future<_i2.Response<dynamic>> fetch(_i2.RequestOptions? requestOptions) =>
@@ -1227,34 +1237,139 @@ class MockDio extends _i1.Mock implements _i2.Dio {
 /// A class which mocks [AuthRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAuthRepository extends _i1.Mock implements _i10.AuthRepository {
+class MockAuthRepository extends _i1.Mock implements _i11.AuthRepository {
   @override
-  _i4.Future<_i11.User> login(String? username, String? password) =>
+  _i4.Future<_i12.User> login(String? username, String? password) =>
       (super.noSuchMethod(
             Invocation.method(#login, [username, password]),
-            returnValue: _i4.Future<_i11.User>.value(
-              _i9.dummyValue<_i11.User>(
+            returnValue: _i4.Future<_i12.User>.value(
+              _i10.dummyValue<_i12.User>(
                 this,
                 Invocation.method(#login, [username, password]),
               ),
             ),
-            returnValueForMissingStub: _i4.Future<_i11.User>.value(
-              _i9.dummyValue<_i11.User>(
+            returnValueForMissingStub: _i4.Future<_i12.User>.value(
+              _i10.dummyValue<_i12.User>(
                 this,
                 Invocation.method(#login, [username, password]),
               ),
             ),
           )
-          as _i4.Future<_i11.User>);
+          as _i4.Future<_i12.User>);
 
   @override
-  _i4.Future<_i11.User?> refreshSession(String? refreshToken) =>
+  _i4.Future<_i12.User?> refreshSession(String? refreshToken) =>
       (super.noSuchMethod(
             Invocation.method(#refreshSession, [refreshToken]),
-            returnValue: _i4.Future<_i11.User?>.value(),
-            returnValueForMissingStub: _i4.Future<_i11.User?>.value(),
+            returnValue: _i4.Future<_i12.User?>.value(),
+            returnValueForMissingStub: _i4.Future<_i12.User?>.value(),
           )
-          as _i4.Future<_i11.User?>);
+          as _i4.Future<_i12.User?>);
+}
+
+/// A class which mocks [TaskRepository].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockTaskRepository extends _i1.Mock implements _i13.TaskRepository {
+  @override
+  _i4.Future<_i14.Task> create({
+    required int? userId,
+    required String? name,
+    required String? description,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#create, [], {
+              #userId: userId,
+              #name: name,
+              #description: description,
+            }),
+            returnValue: _i4.Future<_i14.Task>.value(
+              _i10.dummyValue<_i14.Task>(
+                this,
+                Invocation.method(#create, [], {
+                  #userId: userId,
+                  #name: name,
+                  #description: description,
+                }),
+              ),
+            ),
+            returnValueForMissingStub: _i4.Future<_i14.Task>.value(
+              _i10.dummyValue<_i14.Task>(
+                this,
+                Invocation.method(#create, [], {
+                  #userId: userId,
+                  #name: name,
+                  #description: description,
+                }),
+              ),
+            ),
+          )
+          as _i4.Future<_i14.Task>);
+
+  @override
+  _i4.Future<_i14.Task> updateTask(_i14.Task? task) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateTask, [task]),
+            returnValue: _i4.Future<_i14.Task>.value(
+              _i10.dummyValue<_i14.Task>(
+                this,
+                Invocation.method(#updateTask, [task]),
+              ),
+            ),
+            returnValueForMissingStub: _i4.Future<_i14.Task>.value(
+              _i10.dummyValue<_i14.Task>(
+                this,
+                Invocation.method(#updateTask, [task]),
+              ),
+            ),
+          )
+          as _i4.Future<_i14.Task>);
+
+  @override
+  _i4.Future<_i14.Task> toggleCompleted(_i14.Task? task) =>
+      (super.noSuchMethod(
+            Invocation.method(#toggleCompleted, [task]),
+            returnValue: _i4.Future<_i14.Task>.value(
+              _i10.dummyValue<_i14.Task>(
+                this,
+                Invocation.method(#toggleCompleted, [task]),
+              ),
+            ),
+            returnValueForMissingStub: _i4.Future<_i14.Task>.value(
+              _i10.dummyValue<_i14.Task>(
+                this,
+                Invocation.method(#toggleCompleted, [task]),
+              ),
+            ),
+          )
+          as _i4.Future<_i14.Task>);
+
+  @override
+  _i4.Future<void> delete(_i14.Task? task) =>
+      (super.noSuchMethod(
+            Invocation.method(#delete, [task]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<({int completed, int pending})> countByStatus({
+    required int? userId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#countByStatus, [], {#userId: userId}),
+            returnValue: _i4.Future<({int completed, int pending})>.value((
+              completed: 0,
+              pending: 0,
+            )),
+            returnValueForMissingStub:
+                _i4.Future<({int completed, int pending})>.value((
+                  completed: 0,
+                  pending: 0,
+                )),
+          )
+          as _i4.Future<({int completed, int pending})>);
 }
 
 /// A class which mocks [Database].
@@ -1265,8 +1380,11 @@ class MockDatabase extends _i1.Mock implements _i3.Database {
   String get path =>
       (super.noSuchMethod(
             Invocation.getter(#path),
-            returnValue: _i9.dummyValue<String>(this, Invocation.getter(#path)),
-            returnValueForMissingStub: _i9.dummyValue<String>(
+            returnValue: _i10.dummyValue<String>(
+              this,
+              Invocation.getter(#path),
+            ),
+            returnValueForMissingStub: _i10.dummyValue<String>(
               this,
               Invocation.getter(#path),
             ),
@@ -1311,8 +1429,8 @@ class MockDatabase extends _i1.Mock implements _i3.Database {
       (super.noSuchMethod(
             Invocation.method(#transaction, [action], {#exclusive: exclusive}),
             returnValue:
-                _i9.ifNotNull(
-                  _i9.dummyValueOrNull<T>(
+                _i10.ifNotNull(
+                  _i10.dummyValueOrNull<T>(
                     this,
                     Invocation.method(
                       #transaction,
@@ -1331,8 +1449,8 @@ class MockDatabase extends _i1.Mock implements _i3.Database {
                   ),
                 ),
             returnValueForMissingStub:
-                _i9.ifNotNull(
-                  _i9.dummyValueOrNull<T>(
+                _i10.ifNotNull(
+                  _i10.dummyValueOrNull<T>(
                     this,
                     Invocation.method(
                       #transaction,
@@ -1360,8 +1478,8 @@ class MockDatabase extends _i1.Mock implements _i3.Database {
       (super.noSuchMethod(
             Invocation.method(#readTransaction, [action]),
             returnValue:
-                _i9.ifNotNull(
-                  _i9.dummyValueOrNull<T>(
+                _i10.ifNotNull(
+                  _i10.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#readTransaction, [action]),
                   ),
@@ -1372,8 +1490,8 @@ class MockDatabase extends _i1.Mock implements _i3.Database {
                   Invocation.method(#readTransaction, [action]),
                 ),
             returnValueForMissingStub:
-                _i9.ifNotNull(
-                  _i9.dummyValueOrNull<T>(
+                _i10.ifNotNull(
+                  _i10.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#readTransaction, [action]),
                   ),
@@ -1391,8 +1509,8 @@ class MockDatabase extends _i1.Mock implements _i3.Database {
       (super.noSuchMethod(
             Invocation.method(#devInvokeMethod, [method, arguments]),
             returnValue:
-                _i9.ifNotNull(
-                  _i9.dummyValueOrNull<T>(
+                _i10.ifNotNull(
+                  _i10.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#devInvokeMethod, [method, arguments]),
                   ),
@@ -1403,8 +1521,8 @@ class MockDatabase extends _i1.Mock implements _i3.Database {
                   Invocation.method(#devInvokeMethod, [method, arguments]),
                 ),
             returnValueForMissingStub:
-                _i9.ifNotNull(
-                  _i9.dummyValueOrNull<T>(
+                _i10.ifNotNull(
+                  _i10.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#devInvokeMethod, [method, arguments]),
                   ),
@@ -1426,8 +1544,8 @@ class MockDatabase extends _i1.Mock implements _i3.Database {
       (super.noSuchMethod(
             Invocation.method(#devInvokeSqlMethod, [method, sql, arguments]),
             returnValue:
-                _i9.ifNotNull(
-                  _i9.dummyValueOrNull<T>(
+                _i10.ifNotNull(
+                  _i10.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#devInvokeSqlMethod, [
                       method,
@@ -1446,8 +1564,8 @@ class MockDatabase extends _i1.Mock implements _i3.Database {
                   ]),
                 ),
             returnValueForMissingStub:
-                _i9.ifNotNull(
-                  _i9.dummyValueOrNull<T>(
+                _i10.ifNotNull(
+                  _i10.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#devInvokeSqlMethod, [
                       method,
@@ -1491,7 +1609,7 @@ class MockDatabase extends _i1.Mock implements _i3.Database {
     String? table,
     Map<String, Object?>? values, {
     String? nullColumnHack,
-    _i12.ConflictAlgorithm? conflictAlgorithm,
+    _i15.ConflictAlgorithm? conflictAlgorithm,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -1689,7 +1807,7 @@ class MockDatabase extends _i1.Mock implements _i3.Database {
     Map<String, Object?>? values, {
     String? where,
     List<Object?>? whereArgs,
-    _i12.ConflictAlgorithm? conflictAlgorithm,
+    _i15.ConflictAlgorithm? conflictAlgorithm,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -1784,7 +1902,7 @@ class MockTransaction extends _i1.Mock implements _i3.Transaction {
     String? table,
     Map<String, Object?>? values, {
     String? nullColumnHack,
-    _i12.ConflictAlgorithm? conflictAlgorithm,
+    _i15.ConflictAlgorithm? conflictAlgorithm,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -1982,7 +2100,7 @@ class MockTransaction extends _i1.Mock implements _i3.Transaction {
     Map<String, Object?>? values, {
     String? where,
     List<Object?>? whereArgs,
-    _i12.ConflictAlgorithm? conflictAlgorithm,
+    _i15.ConflictAlgorithm? conflictAlgorithm,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -2036,4 +2154,75 @@ class MockTransaction extends _i1.Mock implements _i3.Transaction {
             ),
           )
           as _i3.Batch);
+}
+
+/// A class which mocks [StorageImpl].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockStorageImpl<T extends _i6.StorageEnum<Object>> extends _i1.Mock
+    implements _i16.StorageImpl<T> {
+  @override
+  _i5.FlutterSecureStorage get secureStorage =>
+      (super.noSuchMethod(
+            Invocation.getter(#secureStorage),
+            returnValue: _FakeFlutterSecureStorage_10(
+              this,
+              Invocation.getter(#secureStorage),
+            ),
+            returnValueForMissingStub: _FakeFlutterSecureStorage_10(
+              this,
+              Invocation.getter(#secureStorage),
+            ),
+          )
+          as _i5.FlutterSecureStorage);
+
+  @override
+  _i4.Future<Map<String, dynamic>?> getItem(T? key) =>
+      (super.noSuchMethod(
+            Invocation.method(#getItem, [key]),
+            returnValue: _i4.Future<Map<String, dynamic>?>.value(),
+            returnValueForMissingStub:
+                _i4.Future<Map<String, dynamic>?>.value(),
+          )
+          as _i4.Future<Map<String, dynamic>?>);
+
+  @override
+  _i4.Future<void> removeAll() =>
+      (super.noSuchMethod(
+            Invocation.method(#removeAll, []),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> removeItem(T? key) =>
+      (super.noSuchMethod(
+            Invocation.method(#removeItem, [key]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> setItem(T? key, Map<String, dynamic>? data) =>
+      (super.noSuchMethod(
+            Invocation.method(#setItem, [key, data]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<B?>
+  getItemToFactory<B extends Object, C extends _i6.StorageEnum<B>>(
+    C? key, {
+    required B Function(Map<String, dynamic>)? fromJson,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getItemToFactory, [key], {#fromJson: fromJson}),
+            returnValue: _i4.Future<B?>.value(),
+            returnValueForMissingStub: _i4.Future<B?>.value(),
+          )
+          as _i4.Future<B?>);
 }
