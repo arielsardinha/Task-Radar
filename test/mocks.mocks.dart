@@ -3,10 +3,15 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i4;
 
-import 'package:mockito/mockito.dart' as _i2;
-import 'package:task_radar/data/storage/storage.dart' as _i1;
+import 'package:dio/dio.dart' as _i2;
+import 'package:mockito/mockito.dart' as _i1;
+import 'package:mockito/src/dummies.dart' as _i8;
+import 'package:task_radar/data/adapter/request_adapter.dart' as _i7;
+import 'package:task_radar/data/adapter/response_adapter.dart' as _i6;
+import 'package:task_radar/data/network/http_service_adapter.dart' as _i5;
+import 'package:task_radar/data/storage/storage.dart' as _i3;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -23,58 +28,126 @@ import 'package:task_radar/data/storage/storage.dart' as _i1;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
+class _FakeResponse_0<T> extends _i1.SmartFake implements _i2.Response<T> {
+  _FakeResponse_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [Storage].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockStorage<T extends _i1.StorageEnum<Object>> extends _i2.Mock
-    implements _i1.Storage<T> {
+class MockStorage<T extends _i3.StorageEnum<Object>> extends _i1.Mock
+    implements _i3.Storage<T> {
   @override
-  _i3.Future<void> setItem(T? key, Map<String, dynamic>? data) =>
+  _i4.Future<void> setItem(T? key, Map<String, dynamic>? data) =>
       (super.noSuchMethod(
             Invocation.method(#setItem, [key, data]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<Map<String, dynamic>?> getItem(T? key) =>
+  _i4.Future<Map<String, dynamic>?> getItem(T? key) =>
       (super.noSuchMethod(
             Invocation.method(#getItem, [key]),
-            returnValue: _i3.Future<Map<String, dynamic>?>.value(),
+            returnValue: _i4.Future<Map<String, dynamic>?>.value(),
             returnValueForMissingStub:
-                _i3.Future<Map<String, dynamic>?>.value(),
+                _i4.Future<Map<String, dynamic>?>.value(),
           )
-          as _i3.Future<Map<String, dynamic>?>);
+          as _i4.Future<Map<String, dynamic>?>);
 
   @override
-  _i3.Future<void> removeItem(T? key) =>
+  _i4.Future<void> removeItem(T? key) =>
       (super.noSuchMethod(
             Invocation.method(#removeItem, [key]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<void> removeAll() =>
+  _i4.Future<void> removeAll() =>
       (super.noSuchMethod(
             Invocation.method(#removeAll, []),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<B?>
-  getItemToFactory<B extends Object, C extends _i1.StorageEnum<B>>(
+  _i4.Future<B?>
+  getItemToFactory<B extends Object, C extends _i3.StorageEnum<B>>(
     C? key, {
     required B Function(Map<String, dynamic>)? fromJson,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getItemToFactory, [key], {#fromJson: fromJson}),
-            returnValue: _i3.Future<B?>.value(),
-            returnValueForMissingStub: _i3.Future<B?>.value(),
+            returnValue: _i4.Future<B?>.value(),
+            returnValueForMissingStub: _i4.Future<B?>.value(),
           )
-          as _i3.Future<B?>);
+          as _i4.Future<B?>);
+}
+
+/// A class which mocks [HttpServiceAdapter].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockHttpServiceAdapter extends _i1.Mock
+    implements _i5.HttpServiceAdapter {
+  @override
+  _i4.Future<_i6.ResponseAdapter<T>> get<T>(_i7.RequestAdapter? request) =>
+      (super.noSuchMethod(
+            Invocation.method(#get, [request]),
+            returnValue: _i4.Future<_i6.ResponseAdapter<T>>.value(
+              _i8.dummyValue<_i6.ResponseAdapter<T>>(
+                this,
+                Invocation.method(#get, [request]),
+              ),
+            ),
+            returnValueForMissingStub: _i4.Future<_i6.ResponseAdapter<T>>.value(
+              _i8.dummyValue<_i6.ResponseAdapter<T>>(
+                this,
+                Invocation.method(#get, [request]),
+              ),
+            ),
+          )
+          as _i4.Future<_i6.ResponseAdapter<T>>);
+
+  @override
+  _i4.Future<_i6.ResponseAdapter<T>> post<T>(_i7.RequestAdapter? request) =>
+      (super.noSuchMethod(
+            Invocation.method(#post, [request]),
+            returnValue: _i4.Future<_i6.ResponseAdapter<T>>.value(
+              _i8.dummyValue<_i6.ResponseAdapter<T>>(
+                this,
+                Invocation.method(#post, [request]),
+              ),
+            ),
+            returnValueForMissingStub: _i4.Future<_i6.ResponseAdapter<T>>.value(
+              _i8.dummyValue<_i6.ResponseAdapter<T>>(
+                this,
+                Invocation.method(#post, [request]),
+              ),
+            ),
+          )
+          as _i4.Future<_i6.ResponseAdapter<T>>);
+
+  @override
+  _i4.Future<_i2.Response<dynamic>> fetch(_i2.RequestOptions? requestOptions) =>
+      (super.noSuchMethod(
+            Invocation.method(#fetch, [requestOptions]),
+            returnValue: _i4.Future<_i2.Response<dynamic>>.value(
+              _FakeResponse_0<dynamic>(
+                this,
+                Invocation.method(#fetch, [requestOptions]),
+              ),
+            ),
+            returnValueForMissingStub: _i4.Future<_i2.Response<dynamic>>.value(
+              _FakeResponse_0<dynamic>(
+                this,
+                Invocation.method(#fetch, [requestOptions]),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.Response<dynamic>>);
 }
