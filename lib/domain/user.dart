@@ -1,19 +1,6 @@
 enum UserType {
   admin,
   moderator;
-
-  static UserType fromRole(String? role) {
-    final normalized = role?.trim().toLowerCase();
-
-    switch (normalized) {
-      case 'admin':
-        return UserType.admin;
-      case 'moderator':
-        return UserType.moderator;
-      default:
-        return throw Exception('Unknown user role: $role');
-    }
-  }
 }
 
 final class User {

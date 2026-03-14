@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:task_radar/domain/user.dart';
 part 'me_model.freezed.dart';
 part 'me_model.g.dart';
 
@@ -39,6 +40,26 @@ abstract class MeModel with _$MeModel {
 
   factory MeModel.fromJson(Map<String, dynamic> json) =>
       _$MeModelFromJson(json);
+
+  User toUser() {
+    final composedName = [firstName, lastName]
+        .whereType<String>()
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .join(' ')
+        .trim();
+
+    return User(
+      fullName: composedName.isEmpty ? 'Usuario' : composedName,
+      email: email ?? '',
+      phone: phone ?? '',
+      company: company?.name ?? '',
+      department: company?.department ?? '',
+      photo: image ?? '',
+      userType: UserType.moderator, // TODO: No momento não foi mapeado como será para acessar e logar como moderador, por isso estou setando como moderador, mas isso pode mudar no futuro
+    );
+  }
+
 }
 
 @freezed

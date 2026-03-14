@@ -13,6 +13,7 @@ import 'package:task_radar/data/adapter/response_adapter.dart' as _i6;
 import 'package:task_radar/data/network/http_service_adapter.dart' as _i5;
 import 'package:task_radar/data/repositories/login_repository.dart' as _i9;
 import 'package:task_radar/data/storage/storage.dart' as _i3;
+import 'package:task_radar/domain/user.dart' as _i10;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -1206,11 +1207,21 @@ class MockDio extends _i1.Mock implements _i2.Dio {
 /// See the documentation for Mockito's code generation for more information.
 class MockLoginRepository extends _i1.Mock implements _i9.LoginRepository {
   @override
-  _i4.Future<void> login(String? name, String? password) =>
+  _i4.Future<_i10.User> login(String? name, String? password) =>
       (super.noSuchMethod(
             Invocation.method(#login, [name, password]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i4.Future<_i10.User>.value(
+              _i8.dummyValue<_i10.User>(
+                this,
+                Invocation.method(#login, [name, password]),
+              ),
+            ),
+            returnValueForMissingStub: _i4.Future<_i10.User>.value(
+              _i8.dummyValue<_i10.User>(
+                this,
+                Invocation.method(#login, [name, password]),
+              ),
+            ),
           )
-          as _i4.Future<void>);
+          as _i4.Future<_i10.User>);
 }

@@ -6,9 +6,10 @@ import 'package:task_radar/data/network/http_service_adapter.dart';
 import 'package:task_radar/data/storage/refresh_token_model.dart';
 import 'package:task_radar/data/storage/storage.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
+import 'package:task_radar/domain/user.dart';
 
 abstract interface class LoginRepository {
-  Future<void> login(String name, String password);
+  Future<User> login(String name, String password);
 }
 
 final class LoginRepositoryImpl implements LoginRepository {
@@ -25,7 +26,7 @@ final class LoginRepositoryImpl implements LoginRepository {
   }
 
   @override
-  Future<void> login(String name, String password) async {
+  Future<User> login(String name, String password) async {
     try {
       final response = await _httpServiceAdapter.post(
         RequestAdapter(
@@ -42,11 +43,12 @@ final class LoginRepositoryImpl implements LoginRepository {
             token: response.data['accessToken'],
           ).toJson(),
         );
-
+        final meModel = MeModel.fromJson(response.data);
         await _storage.setItem(
           StorageSecureEnum.auth_user,
-          MeModel.fromJson(response.data).toJson(),
+          meModel.toJson(),
         );
+        return meModel.toUser();
       } else {
         throw Exception("falha ao realizar login: ${response.statusCode}");
       }

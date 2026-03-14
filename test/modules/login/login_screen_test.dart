@@ -2,14 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'dart:async';
+import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/modules/login/login_screen.dart';
 import 'package:task_radar/modules/login/view_models/login_view_model.dart';
 
 import '../../mocks.mocks.dart';
 
+const dummyUser = User(
+  fullName: 'Usuario Teste',
+  email: 'usuario@teste.com',
+  phone: '11999999999',
+  company: 'Task Radar',
+  department: 'Produto',
+  photo: 'https://dummyjson.com/icon/usuario/128',
+  userType: UserType.moderator,
+);
+
 void main() {
   late MockLoginRepository loginRepository;
   late LoginViewModel viewModel;
+
+  setUpAll(() {
+    provideDummy<User>(dummyUser);
+  });
 
   setUp(() {
     loginRepository = MockLoginRepository();
@@ -35,6 +50,7 @@ void main() {
   Finder loadingIndicatorFinder() => find.byKey(
     const Key('LoginScreen.CircularProgressIndicator.authLoading'),
   );
+
 
   group('LoginScreen widget tests', () {
     testWidgets(
@@ -83,7 +99,7 @@ void main() {
     testWidgets(
       'deve exibir loading enquanto autenticacao estiver em andamento',
       (tester) async {
-        final completer = Completer<void>();
+        final completer = Completer<User>();
         when(
           loginRepository.login('emilys', 'emilyspass'),
         ).thenAnswer((_) => completer.future);
@@ -97,7 +113,7 @@ void main() {
 
         expect(loadingIndicatorFinder(), findsOneWidget);
 
-        completer.complete();
+        completer.complete(dummyUser);
         await tester.pumpAndSettle();
 
         expect(loadingIndicatorFinder(), findsNothing);
@@ -110,7 +126,7 @@ void main() {
       (tester) async {
         when(
           loginRepository.login('emilys', 'emilyspass'),
-        ).thenAnswer((_) async {});
+        ).thenAnswer((_) async => dummyUser);
 
         await pumpLoginScreen(tester);
 
