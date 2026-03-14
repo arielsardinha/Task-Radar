@@ -49,25 +49,23 @@ abstract class MeModel with _$MeModel {
         .join(' ')
         .trim();
 
+    final normalizedRole = (role ?? '').trim().toLowerCase();
+
     return User(
-      fullName: composedName.isEmpty ? 'Usuario' : composedName,
+      fullName: composedName,
       email: email ?? '',
       phone: phone ?? '',
       company: company?.name ?? '',
       department: company?.department ?? '',
       photo: image ?? '',
-      userType: UserType.moderator, // TODO: No momento não foi mapeado como será para acessar e logar como moderador, por isso estou setando como moderador, mas isso pode mudar no futuro
+      userType: normalizedRole == 'admin' ? UserType.admin : UserType.moderator,
     );
   }
-
 }
 
 @freezed
 abstract class MeHairModel with _$MeHairModel {
-  const factory MeHairModel({
-    String? color,
-    String? type,
-  }) = _MeHairModel;
+  const factory MeHairModel({String? color, String? type}) = _MeHairModel;
 
   factory MeHairModel.fromJson(Map<String, dynamic> json) =>
       _$MeHairModelFromJson(json);
@@ -91,10 +89,8 @@ abstract class MeAddressModel with _$MeAddressModel {
 
 @freezed
 abstract class MeCoordinatesModel with _$MeCoordinatesModel {
-  const factory MeCoordinatesModel({
-    double? lat,
-    double? lng,
-  }) = _MeCoordinatesModel;
+  const factory MeCoordinatesModel({double? lat, double? lng}) =
+      _MeCoordinatesModel;
 
   factory MeCoordinatesModel.fromJson(Map<String, dynamic> json) =>
       _$MeCoordinatesModelFromJson(json);
@@ -129,11 +125,8 @@ abstract class MeCompanyModel with _$MeCompanyModel {
 
 @freezed
 abstract class MeCryptoModel with _$MeCryptoModel {
-  const factory MeCryptoModel({
-    String? coin,
-    String? wallet,
-    String? network,
-  }) = _MeCryptoModel;
+  const factory MeCryptoModel({String? coin, String? wallet, String? network}) =
+      _MeCryptoModel;
 
   factory MeCryptoModel.fromJson(Map<String, dynamic> json) =>
       _$MeCryptoModelFromJson(json);

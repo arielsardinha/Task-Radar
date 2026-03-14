@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:task_radar/data/adapter/http_error_adapter.dart';
-import 'package:task_radar/data/models/me_model.dart';
+
 import 'package:task_radar/data/adapter/request_adapter.dart';
 import 'package:task_radar/data/adapter/response_adapter.dart';
 import 'package:task_radar/data/repositories/auth_repository.dart';
@@ -24,58 +24,90 @@ void main() {
   });
 
   group('AuthRepositoryImpl', () {
-    test('deve realizar login e salvar os tokens no storage', () async {
-      when(httpServiceAdapter.post<dynamic>(any)).thenAnswer(
-        (_) async => const ResponseAdapter<Map<String, dynamic>>(
-          statusCode: 200,
-          data: {
-            'id': 1,
-            'username': 'usuario_teste',
-            'email': 'usuario@teste.com',
-            'firstName': 'Usuario',
-            'lastName': 'Teste',
-            'image': 'https://dummyjson.com/icon/usuario/128',
-            'accessToken': 'access-token-valido',
-            'refreshToken': 'refresh-token-valido',
-          },
-        ),
-      );
-      when(storage.setItem(any, any)).thenAnswer((_) async {});
-
-      await sut.login('usuario_teste', 'senha123');
-
-      final capturedRequest =
-          verify(httpServiceAdapter.post<dynamic>(captureAny)).captured.single
-              as RequestAdapter;
-      expect(capturedRequest.path, '/auth/login');
-      expect(capturedRequest.data, {
-        'username': 'usuario_teste',
-        'password': 'senha123',
-      });
-
-      verifyInOrder([
-        storage.setItem(StorageSecureEnum.auth_jwt, {
-          'refresh_token': 'refresh-token-valido',
-          'token': 'access-token-valido',
-        }),
-        storage.setItem(
-          StorageSecureEnum.auth_user,
-          argThat(
-            isA<Map<String, dynamic>>()
-                .having((m) => m['id'], 'id', 1)
-                .having((m) => m['username'], 'username', 'usuario_teste')
-                .having((m) => m['email'], 'email', 'usuario@teste.com')
-                .having((m) => m['firstName'], 'firstName', 'Usuario')
-                .having((m) => m['lastName'], 'lastName', 'Teste')
-                .having(
-                  (m) => m['image'],
-                  'image',
-                  'https://dummyjson.com/icon/usuario/128',
-                ),
+    test(
+      'deve realizar login, buscar /auth/me e salvar tokens e usuario no storage',
+      () async {
+        when(httpServiceAdapter.post<dynamic>(any)).thenAnswer(
+          (_) async => const ResponseAdapter<Map<String, dynamic>>(
+            statusCode: 200,
+            data: {
+              'id': 1,
+              'username': 'usuario_teste',
+              'email': 'usuario@teste.com',
+              'firstName': 'Usuario',
+              'lastName': 'Teste',
+              'image': 'https://dummyjson.com/icon/usuario/128',
+              'accessToken': 'access-token-valido',
+              'refreshToken': 'refresh-token-valido',
+            },
           ),
-        ),
-      ]);
-    });
+        );
+
+        when(httpServiceAdapter.get<dynamic>(any)).thenAnswer(
+          (_) async => const ResponseAdapter<Map<String, dynamic>>(
+            statusCode: 200,
+            data: {
+              'id': 1,
+              'username': 'usuario_teste',
+              'firstName': 'Usuario',
+              'lastName': 'Teste',
+              'email': 'usuario@teste.com',
+              'phone': '11999999999',
+              'image': 'https://dummyjson.com/icon/usuario/128',
+              'role': 'admin',
+              'company': {'name': 'Task Radar', 'department': 'Produto'},
+            },
+          ),
+        );
+
+        when(storage.setItem(any, any)).thenAnswer((_) async {});
+
+        final user = await sut.login('usuario_teste', 'senha123');
+
+        expect(user.userType.name, 'admin');
+
+        final capturedRequest =
+            verify(httpServiceAdapter.post<dynamic>(captureAny)).captured.single
+                as RequestAdapter;
+        expect(capturedRequest.path, '/auth/login');
+        expect(capturedRequest.data, {
+          'username': 'usuario_teste',
+          'password': 'senha123',
+        });
+
+        final capturedMeRequest =
+            verify(httpServiceAdapter.get<dynamic>(captureAny)).captured.single
+                as RequestAdapter;
+        expect(capturedMeRequest.path, '/auth/me');
+        expect(capturedMeRequest.headers, {
+          'Authorization': 'Bearer access-token-valido',
+        });
+
+        verifyInOrder([
+          storage.setItem(StorageSecureEnum.auth_jwt, {
+            'refresh_token': 'refresh-token-valido',
+            'token': 'access-token-valido',
+          }),
+          storage.setItem(
+            StorageSecureEnum.auth_user,
+            argThat(
+              isA<Map<String, dynamic>>()
+                  .having((m) => m['id'], 'id', 1)
+                  .having((m) => m['username'], 'username', 'usuario_teste')
+                  .having((m) => m['email'], 'email', 'usuario@teste.com')
+                  .having((m) => m['firstName'], 'firstName', 'Usuario')
+                  .having((m) => m['lastName'], 'lastName', 'Teste')
+                  .having((m) => m['role'], 'role', 'admin')
+                  .having(
+                    (m) => m['image'],
+                    'image',
+                    'https://dummyjson.com/icon/usuario/128',
+                  ),
+            ),
+          ),
+        ]);
+      },
+    );
 
     test(
       'deve lançar excecao quando status code for diferente de 200',
@@ -153,6 +185,40 @@ void main() {
     });
 
     test(
+      'deve lançar excecao contextual quando falhar ao obter perfil apos login',
+      () async {
+        when(httpServiceAdapter.post<dynamic>(any)).thenAnswer(
+          (_) async => const ResponseAdapter<Map<String, dynamic>>(
+            statusCode: 200,
+            data: {
+              'accessToken': 'access-token-valido',
+              'refreshToken': 'refresh-token-valido',
+            },
+          ),
+        );
+
+        when(storage.setItem(any, any)).thenAnswer((_) async {});
+        when(httpServiceAdapter.get<dynamic>(any)).thenThrow(
+          const HttpError(
+            response: ResponseAdapter(statusCode: 401),
+            statusMessage: 'token invalido',
+          ),
+        );
+
+        expect(
+          () => sut.login('usuario_teste', 'senha123'),
+          throwsA(
+            isA<Exception>().having(
+              (error) => error.toString(),
+              'mensagem',
+              contains('Falha ao obter perfil do usuário'),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
       'refreshSession deve limpar storage e retornar null quando refreshToken for vazio',
       () async {
         final result = await sut.refreshSession('   ');
@@ -184,7 +250,7 @@ void main() {
     );
 
     test(
-      'refreshSession deve atualizar tokens e retornar usuario em cache quando auth_user existir',
+      'refreshSession deve atualizar tokens e retornar usuario obtido em /auth/me',
       () async {
         when(httpServiceAdapter.post<dynamic>(any)).thenAnswer(
           (_) async => const ResponseAdapter<Map<String, dynamic>>(
@@ -193,19 +259,20 @@ void main() {
           ),
         );
 
-        when(
-          storage.getItemToFactory(
-            StorageSecureEnum.auth_user,
-            fromJson: anyNamed('fromJson'),
-          ),
-        ).thenAnswer(
-          (_) async => const MeModel(
-            firstName: 'Usuario',
-            lastName: 'Teste',
-            email: 'usuario@teste.com',
-            phone: '11999999999',
-            image: 'https://dummyjson.com/icon/usuario/128',
-            company: MeCompanyModel(name: 'Task Radar', department: 'Produto'),
+        when(httpServiceAdapter.get<dynamic>(any)).thenAnswer(
+          (_) async => const ResponseAdapter<Map<String, dynamic>>(
+            statusCode: 200,
+            data: {
+              'id': 1,
+              'username': 'usuario_teste',
+              'email': 'usuario@teste.com',
+              'firstName': 'Usuario',
+              'lastName': 'Teste',
+              'phone': '11999999999',
+              'image': 'https://dummyjson.com/icon/usuario/128',
+              'role': 'admin',
+              'company': {'name': 'Task Radar', 'department': 'Produto'},
+            },
           ),
         );
 
@@ -215,6 +282,7 @@ void main() {
 
         expect(result, isNotNull);
         expect(result!.fullName, 'Usuario Teste');
+        expect(result.userType.name, 'admin');
 
         final capturedRefreshRequest =
             verify(httpServiceAdapter.post<dynamic>(captureAny)).captured.single
@@ -231,7 +299,7 @@ void main() {
             'token': 'token-novo',
           }),
         ).called(1);
-        verifyNever(httpServiceAdapter.get<dynamic>(any));
+        verify(httpServiceAdapter.get<dynamic>(any)).called(1);
         verifyNever(storage.removeAll());
       },
     );
@@ -262,7 +330,10 @@ void main() {
               'email': 'usuario@teste.com',
               'firstName': 'Usuario',
               'lastName': 'Teste',
+              'phone': '11999999999',
               'image': 'https://dummyjson.com/icon/usuario/128',
+              'role': 'admin',
+              'company': {'name': 'Task Radar', 'department': 'Produto'},
             },
           ),
         );
@@ -273,6 +344,7 @@ void main() {
 
         expect(result, isNotNull);
         expect(result!.fullName, 'Usuario Teste');
+        expect(result.userType.name, 'admin');
 
         final capturedGetRequest =
             verify(httpServiceAdapter.get<dynamic>(captureAny)).captured.single

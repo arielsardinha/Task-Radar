@@ -36,10 +36,25 @@ final class AuthRepositoryImpl implements AuthRepository {
         _containsTokenPair(response.data as Map);
   }
 
-  Future<User> _saveUserFromMap(Map<String, dynamic> data) async {
-    final meModel = MeModel.fromJson(data);
-    await _storage.setItem(StorageSecureEnum.auth_user, meModel.toJson());
-    return meModel.toUser();
+  Future<User> _fetchAndPersistUserFromMe({required String accessToken}) async {
+    try {
+      final meResponse = await _httpServiceAdapter.get(
+        RequestAdapter(
+          path: '/auth/me',
+          headers: {'Authorization': 'Bearer $accessToken'},
+        ),
+      );
+
+      if (meResponse.statusCode != 200 || meResponse.data is! Map) {
+        throw Exception('Falha ao obter perfil do usuário');
+      }
+
+      final meModel = MeModel.fromJson(meResponse.data);
+      await _storage.setItem(StorageSecureEnum.auth_user, meModel.toJson());
+      return meModel.toUser();
+    } catch (_) {
+      throw Exception('Falha ao obter perfil do usuário');
+    }
   }
 
   @override
@@ -49,7 +64,6 @@ final class AuthRepositoryImpl implements AuthRepository {
         RequestAdapter(
           path: '/auth/login',
           data: {'username': username, 'password': password},
-          headers: {'Content-Type': 'application/json'},
         ),
       );
 
@@ -58,16 +72,13 @@ final class AuthRepositoryImpl implements AuthRepository {
       }
 
       final payload = response.data as Map;
-
-      await _storage.setItem(
-        StorageSecureEnum.auth_jwt,
-        RefreshTokenModel(
-          refreshToken: payload['refreshToken'],
-          token: payload['accessToken'],
-        ).toJson(),
+      final authData = RefreshTokenModel(
+        refreshToken: payload['refreshToken'],
+        token: payload['accessToken'],
       );
+      await _storage.setItem(StorageSecureEnum.auth_jwt, authData.toJson());
 
-      return _saveUserFromMap(Map<String, dynamic>.from(payload));
+      return _fetchAndPersistUserFromMe(accessToken: authData.token);
     } on HttpError catch (e) {
       throw Exception('Login failed: ${e.statusMessage}');
     }
@@ -106,29 +117,7 @@ final class AuthRepositoryImpl implements AuthRepository {
         ).toJson(),
       );
 
-      final cachedMe = await _storage.getItemToFactory(
-        StorageSecureEnum.auth_user,
-        fromJson: MeModel.fromJson,
-      );
-      if (cachedMe != null) {
-        return cachedMe.toUser();
-      }
-
-      final meResponse = await _httpServiceAdapter.get(
-        RequestAdapter(
-          path: '/auth/me',
-          headers: {'Authorization': 'Bearer $accessToken'},
-        ),
-      );
-
-      if (meResponse.statusCode != 200 || meResponse.data is! Map) {
-        await _storage.removeAll();
-        return null;
-      }
-
-      return _saveUserFromMap(
-        Map<String, dynamic>.from(meResponse.data as Map),
-      );
+      return await _fetchAndPersistUserFromMe(accessToken: accessToken);
     } catch (_) {
       await _storage.removeAll();
       return null;
