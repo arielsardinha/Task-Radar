@@ -397,7 +397,7 @@ class _TaskItem extends StatelessWidget {
         ),
         child: Container(
           margin: const EdgeInsets.only(bottom: 8),
-          decoration: BoxDecoration(color: colorScheme.surface),
+          decoration: BoxDecoration(color: colorScheme.surfaceContainerHigh),
           child: ListTile(
             onTap: () => onTap(task),
             leading: Icon(

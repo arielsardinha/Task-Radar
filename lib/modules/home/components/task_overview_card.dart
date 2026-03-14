@@ -20,7 +20,7 @@ class TaskOverviewCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(16),

@@ -227,7 +227,7 @@ sealed class AppTheme {
         shape: const CircleBorder(),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: colorScheme.surfaceContainerHigh,
         indicatorColor: colorScheme.primary.withValues(alpha: 0.18),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
@@ -247,8 +247,8 @@ sealed class AppTheme {
         }),
       ),
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: colorScheme.surface,
-        modalBackgroundColor: colorScheme.surface,
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        modalBackgroundColor: colorScheme.surfaceContainerHigh,
         elevation: 1,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),

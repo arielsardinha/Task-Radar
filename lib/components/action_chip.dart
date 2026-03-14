@@ -23,7 +23,7 @@ class FilterChipComponent extends StatelessWidget {
       side: BorderSide(color: colorScheme.outlineVariant),
       backgroundColor: isSelected
           ? colorScheme.secondaryContainer
-          : colorScheme.surface,
+          : colorScheme.surfaceContainerHigh,
       labelStyle: TextStyle(
         color: isSelected
             ? colorScheme.onSecondaryContainer
