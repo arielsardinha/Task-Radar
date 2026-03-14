@@ -5,7 +5,6 @@ import 'package:task_radar/data/models/me_model.dart';
 import 'package:task_radar/data/adapter/request_adapter.dart';
 import 'package:task_radar/data/adapter/response_adapter.dart';
 import 'package:task_radar/data/repositories/auth_repository.dart';
-import 'package:task_radar/data/storage/refresh_token_model.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
 import '../../mocks.mocks.dart';
 
@@ -154,38 +153,9 @@ void main() {
     });
 
     test(
-      'refreshSession deve limpar storage e retornar null quando auth_jwt nao existir',
+      'refreshSession deve limpar storage e retornar null quando refreshToken for vazio',
       () async {
-        when(
-          storage.getItemToFactory(
-            StorageSecureEnum.auth_jwt,
-            fromJson: anyNamed('fromJson'),
-          ),
-        ).thenAnswer((_) async => null);
-
-        final result = await sut.refreshSession();
-
-        expect(result, isNull);
-        verify(storage.removeAll()).called(1);
-        verifyNever(httpServiceAdapter.post<dynamic>(any));
-        verifyNever(httpServiceAdapter.get<dynamic>(any));
-      },
-    );
-
-    test(
-      'refreshSession deve limpar storage e retornar null quando refreshToken vier vazio',
-      () async {
-        when(
-          storage.getItemToFactory(
-            StorageSecureEnum.auth_jwt,
-            fromJson: anyNamed('fromJson'),
-          ),
-        ).thenAnswer(
-          (_) async =>
-              RefreshTokenModel(refreshToken: '   ', token: 'token-antigo'),
-        );
-
-        final result = await sut.refreshSession();
+        final result = await sut.refreshSession('   ');
 
         expect(result, isNull);
         verify(storage.removeAll()).called(1);
@@ -197,18 +167,6 @@ void main() {
     test(
       'refreshSession deve limpar storage quando refresh retornar resposta invalida',
       () async {
-        when(
-          storage.getItemToFactory(
-            StorageSecureEnum.auth_jwt,
-            fromJson: anyNamed('fromJson'),
-          ),
-        ).thenAnswer(
-          (_) async => RefreshTokenModel(
-            refreshToken: 'refresh-antigo',
-            token: 'token-antigo',
-          ),
-        );
-
         when(httpServiceAdapter.post<dynamic>(any)).thenAnswer(
           (_) async => const ResponseAdapter<Map<String, dynamic>>(
             statusCode: 500,
@@ -216,7 +174,7 @@ void main() {
           ),
         );
 
-        final result = await sut.refreshSession();
+        final result = await sut.refreshSession('refresh-antigo');
 
         expect(result, isNull);
         verify(storage.removeAll()).called(1);
@@ -228,18 +186,6 @@ void main() {
     test(
       'refreshSession deve atualizar tokens e retornar usuario em cache quando auth_user existir',
       () async {
-        when(
-          storage.getItemToFactory(
-            StorageSecureEnum.auth_jwt,
-            fromJson: anyNamed('fromJson'),
-          ),
-        ).thenAnswer(
-          (_) async => RefreshTokenModel(
-            refreshToken: 'refresh-antigo',
-            token: 'token-antigo',
-          ),
-        );
-
         when(httpServiceAdapter.post<dynamic>(any)).thenAnswer(
           (_) async => const ResponseAdapter<Map<String, dynamic>>(
             statusCode: 200,
@@ -265,7 +211,7 @@ void main() {
 
         when(storage.setItem(any, any)).thenAnswer((_) async {});
 
-        final result = await sut.refreshSession();
+        final result = await sut.refreshSession('refresh-antigo');
 
         expect(result, isNotNull);
         expect(result!.fullName, 'Usuario Teste');
@@ -293,18 +239,6 @@ void main() {
     test(
       'refreshSession deve buscar /auth/me quando auth_user nao existir em cache',
       () async {
-        when(
-          storage.getItemToFactory(
-            StorageSecureEnum.auth_jwt,
-            fromJson: anyNamed('fromJson'),
-          ),
-        ).thenAnswer(
-          (_) async => RefreshTokenModel(
-            refreshToken: 'refresh-antigo',
-            token: 'token-antigo',
-          ),
-        );
-
         when(
           storage.getItemToFactory(
             StorageSecureEnum.auth_user,
@@ -335,7 +269,7 @@ void main() {
 
         when(storage.setItem(any, any)).thenAnswer((_) async {});
 
-        final result = await sut.refreshSession();
+        final result = await sut.refreshSession('refresh-antigo');
 
         expect(result, isNotNull);
         expect(result!.fullName, 'Usuario Teste');
@@ -364,18 +298,6 @@ void main() {
       () async {
         when(
           storage.getItemToFactory(
-            StorageSecureEnum.auth_jwt,
-            fromJson: anyNamed('fromJson'),
-          ),
-        ).thenAnswer(
-          (_) async => RefreshTokenModel(
-            refreshToken: 'refresh-antigo',
-            token: 'token-antigo',
-          ),
-        );
-
-        when(
-          storage.getItemToFactory(
             StorageSecureEnum.auth_user,
             fromJson: anyNamed('fromJson'),
           ),
@@ -397,7 +319,7 @@ void main() {
 
         when(storage.setItem(any, any)).thenAnswer((_) async {});
 
-        final result = await sut.refreshSession();
+        final result = await sut.refreshSession('refresh-antigo');
 
         expect(result, isNull);
         verify(storage.removeAll()).called(1);
@@ -407,18 +329,6 @@ void main() {
     test(
       'refreshSession deve limpar storage quando ocorrer excecao no refresh',
       () async {
-        when(
-          storage.getItemToFactory(
-            StorageSecureEnum.auth_jwt,
-            fromJson: anyNamed('fromJson'),
-          ),
-        ).thenAnswer(
-          (_) async => RefreshTokenModel(
-            refreshToken: 'refresh-antigo',
-            token: 'token-antigo',
-          ),
-        );
-
         when(httpServiceAdapter.post<dynamic>(any)).thenThrow(
           const HttpError(
             response: ResponseAdapter(statusCode: 401),
@@ -426,7 +336,7 @@ void main() {
           ),
         );
 
-        final result = await sut.refreshSession();
+        final result = await sut.refreshSession('refresh-antigo');
 
         expect(result, isNull);
         verify(storage.removeAll()).called(1);

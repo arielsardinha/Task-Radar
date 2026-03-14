@@ -71,7 +71,14 @@ void main() {
       () async {
         await sut.login(loginUsername, loginPassword);
 
-        final user = await sut.refreshSession();
+        final beforeRefreshAuth = await storage.getItem(
+          StorageSecureEnum.auth_jwt,
+        );
+        final refreshToken = beforeRefreshAuth?['refresh_token'] as String?;
+        expect(refreshToken, isNotNull);
+        expect(refreshToken!.isNotEmpty, isTrue);
+
+        final user = await sut.refreshSession(refreshToken);
 
         final authData = await storage.getItem(StorageSecureEnum.auth_jwt);
         expect(user, isNotNull);

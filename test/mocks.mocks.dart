@@ -20,7 +20,6 @@ import 'package:task_radar/domain/user.dart' as _i10;
 // ignore_for_file: avoid_setters_without_getters
 // ignore_for_file: comment_references
 // ignore_for_file: deprecated_member_use
-// ignore_for_file: deprecated_member_use_from_same_package
 // ignore_for_file: implementation_imports
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 // ignore_for_file: must_be_immutable
@@ -1226,9 +1225,9 @@ class MockAuthRepository extends _i1.Mock implements _i9.AuthRepository {
           as _i4.Future<_i10.User>);
 
   @override
-  _i4.Future<_i10.User?> refreshSession() =>
+  _i4.Future<_i10.User?> refreshSession(String? refreshToken) =>
       (super.noSuchMethod(
-            Invocation.method(#refreshSession, []),
+            Invocation.method(#refreshSession, [refreshToken]),
             returnValue: _i4.Future<_i10.User?>.value(),
             returnValueForMissingStub: _i4.Future<_i10.User?>.value(),
           )

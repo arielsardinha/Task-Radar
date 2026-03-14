@@ -10,7 +10,7 @@ import 'package:task_radar/domain/user.dart';
 
 abstract interface class AuthRepository {
   Future<User> login(String username, String password);
-  Future<User?> refreshSession();
+  Future<User?> refreshSession(String refreshToken);
 }
 
 final class AuthRepositoryImpl implements AuthRepository {
@@ -74,14 +74,9 @@ final class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<User?> refreshSession() async {
+  Future<User?> refreshSession(String refreshToken) async {
     try {
-      final auth = await _storage.getItemToFactory(
-        StorageSecureEnum.auth_jwt,
-        fromJson: RefreshTokenModel.fromJson,
-      );
-
-      if (auth == null || auth.refreshToken.trim().isEmpty) {
+      if (refreshToken.trim().isEmpty) {
         await _storage.removeAll();
         return null;
       }
@@ -89,7 +84,7 @@ final class AuthRepositoryImpl implements AuthRepository {
       final refreshResponse = await _httpServiceAdapter.post(
         RequestAdapter(
           path: '/auth/refresh',
-          data: {'refreshToken': auth.refreshToken, 'expiresInMins': 30},
+          data: {'refreshToken': refreshToken, 'expiresInMins': 30},
           headers: {'Content-Type': 'application/json'},
         ),
       );
@@ -101,16 +96,15 @@ final class AuthRepositoryImpl implements AuthRepository {
 
       final refreshPayload = refreshResponse.data as Map;
       final accessToken = refreshPayload['accessToken'] as String;
-      final refreshToken = refreshPayload['refreshToken'] as String;
+      final refreshedToken = refreshPayload['refreshToken'] as String;
 
-        await _storage.setItem(
+      await _storage.setItem(
         StorageSecureEnum.auth_jwt,
         RefreshTokenModel(
-          refreshToken: refreshToken,
+          refreshToken: refreshedToken,
           token: accessToken,
         ).toJson(),
       );
-
 
       final cachedMe = await _storage.getItemToFactory(
         StorageSecureEnum.auth_user,
