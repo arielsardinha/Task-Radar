@@ -6,20 +6,15 @@ import 'package:task_radar/data/storage/storage.dart';
 class StorageImpl<T extends StorageEnum> implements Storage<T> {
   static const _initialKey = 'SalaryFits_';
 
-  final FlutterSecureStorage secureStorage;
+  final FlutterSecureStorage secureStorage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      migrateOnAlgorithmChange: true,
+      resetOnError: true,
+    ),
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+  );
 
-  const StorageImpl({FlutterSecureStorage? secureStorage})
-    : secureStorage =
-          secureStorage ??
-          const FlutterSecureStorage(
-            aOptions: AndroidOptions(
-              migrateOnAlgorithmChange: true,
-              resetOnError: true,
-            ),
-            iOptions: IOSOptions(
-              accessibility: KeychainAccessibility.first_unlock,
-            ),
-          );
+  const StorageImpl();
 
   Future<Map<String, dynamic>?> _getInfoInSecureStorage(T key) async {
     final item = await secureStorage.read(key: "$_initialKey${key.key}");
