@@ -13,9 +13,11 @@ import 'package:sqflite_common/sql.dart' as _i15;
 import 'package:sqflite_common/sqlite_api.dart' as _i3;
 import 'package:task_radar/data/adapter/request_adapter.dart' as _i9;
 import 'package:task_radar/data/adapter/response_adapter.dart' as _i8;
+import 'package:task_radar/data/models/me_model.dart' as _i18;
 import 'package:task_radar/data/network/http_service_adapter.dart' as _i7;
 import 'package:task_radar/data/repositories/auth_repository.dart' as _i11;
 import 'package:task_radar/data/repositories/task_repository.dart' as _i13;
+import 'package:task_radar/data/repositories/user_repository.dart' as _i17;
 import 'package:task_radar/data/storage/storage.dart' as _i6;
 import 'package:task_radar/data/storage/storage_impl.dart' as _i16;
 import 'package:task_radar/domain/task.dart' as _i14;
@@ -2236,4 +2238,20 @@ class MockStorageImpl<T extends _i6.StorageEnum<Object>> extends _i1.Mock
             returnValueForMissingStub: _i4.Future<B?>.value(),
           )
           as _i4.Future<B?>);
+}
+
+/// A class which mocks [UserRepository].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockUserRepository extends _i1.Mock implements _i17.UserRepository {
+  @override
+  _i4.Future<List<_i18.MeModel>> getUsers({int? limit, int? skip}) =>
+      (super.noSuchMethod(
+            Invocation.method(#getUsers, [], {#limit: limit, #skip: skip}),
+            returnValue: _i4.Future<List<_i18.MeModel>>.value(<_i18.MeModel>[]),
+            returnValueForMissingStub: _i4.Future<List<_i18.MeModel>>.value(
+              <_i18.MeModel>[],
+            ),
+          )
+          as _i4.Future<List<_i18.MeModel>>);
 }

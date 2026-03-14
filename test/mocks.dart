@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart' show Database, Transaction;
 import 'package:task_radar/data/network/http_service_adapter.dart';
 import 'package:task_radar/data/repositories/auth_repository.dart';
 import 'package:task_radar/data/repositories/task_repository.dart';
+import 'package:task_radar/data/repositories/user_repository.dart';
 import 'package:task_radar/data/storage/storage.dart';
 import 'package:task_radar/data/storage/storage_impl.dart';
 
@@ -15,4 +16,5 @@ import 'package:task_radar/data/storage/storage_impl.dart';
 @GenerateNiceMocks([MockSpec<Database>()])
 @GenerateNiceMocks([MockSpec<Transaction>()])
 @GenerateNiceMocks([MockSpec<StorageImpl>()])
+@GenerateNiceMocks([MockSpec<UserRepository>()])
 void main() {}
