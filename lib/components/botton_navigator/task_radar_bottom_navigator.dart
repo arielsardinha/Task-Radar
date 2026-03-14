@@ -33,6 +33,7 @@ class TaskRadarBottomNavigator extends StatelessWidget {
                       if (page == item) {
                         return;
                       }
+
                       context.go(item.route);
                     },
                     labelStyle: textTheme.labelMedium ?? const TextStyle(),
@@ -79,36 +80,44 @@ class _NavigationItem extends StatelessWidget {
       NavigationBarEnum.profile => Icons.account_circle_outlined,
     };
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(24),
-      onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 64,
-            height: 32,
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFFE8DEF8) : Colors.transparent,
-              borderRadius: BorderRadius.circular(100),
-            ),
-            alignment: Alignment.center,
-            child: Icon(
-              icon,
-              size: 24,
-              color: isSelected ? selectedColor : unselectedColor,
-            ),
+    return Center(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 64,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? const Color(0xFFE8DEF8)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  icon,
+                  size: 24,
+                  color: isSelected ? selectedColor : unselectedColor,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: labelStyle.copyWith(
+                  color: isSelected ? selectedColor : unselectedColor,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: labelStyle.copyWith(
-              color: isSelected ? selectedColor : unselectedColor,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -2,13 +2,10 @@ import 'package:sqflite/sqflite.dart' show Database;
 import 'package:task_radar/data/repositories/task_repository.dart';
 import 'package:task_radar/domain/task.dart';
 
-
 final class TaskRepositoryImpl implements TaskRepository {
   final Database _db;
 
-  TaskRepositoryImpl({
-    required Database database,
-  }) : _db = database;
+  TaskRepositoryImpl({required Database database}) : _db = database;
 
   /// Garante a criacao do schema local usado pelo fluxo offline-first.
   ///
@@ -65,6 +62,18 @@ final class TaskRepositoryImpl implements TaskRepository {
       last_sync_at INTEGER
     );
     ''');
+  }
+
+  @override
+  Future<List<Task>> getAllByUser({required int userId}) async {
+    final rows = await _db.query(
+      'tasks',
+      where: 'is_deleted = 0 AND user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'updated_at DESC, remote_id DESC',
+    );
+
+    return rows.map(Task.fromSqliteRow).toList();
   }
 
   @override

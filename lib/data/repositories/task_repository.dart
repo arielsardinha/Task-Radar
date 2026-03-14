@@ -3,6 +3,8 @@ import 'package:task_radar/domain/task.dart';
 typedef TaskSort = ({String field, bool asc});
 
 abstract interface class TaskRepository {
+  Future<List<Task>> getAllByUser({required int userId});
+
   Future<Task> create({
     required int userId,
     required String name,
