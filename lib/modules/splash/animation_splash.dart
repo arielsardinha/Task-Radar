@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:task_radar/data/repositories/auth_repository.dart';
 import 'package:task_radar/data/storage/storage.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
+import 'package:task_radar/global/providers/provider_theme.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/routes/routes.dart';
 
@@ -60,6 +61,9 @@ class _SplashAnimationScreenState extends State<SplashAnimationScreen>
   }
 
   Future<void> _bootstrapSession() async {
+    await context.read<ProviderTheme>().loadFromStorage(widget.storage);
+    if (!mounted) return;
+
     final authData = await widget.storage.getItem(StorageSecureEnum.auth_jwt);
     final refreshToken = authData?['refresh_token'] as String?;
     final user = refreshToken == null

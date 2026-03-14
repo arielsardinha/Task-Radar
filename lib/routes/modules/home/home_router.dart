@@ -46,7 +46,7 @@ sealed class HomeRouter {
         child: Provider<ProfileBloc>(
           create: (_) =>
               ProfileBloc(storage: GetIt.instance.get<StorageImpl>()),
-          child: const ProfileScreen(),
+          child: ProfileScreen(storage: GetIt.instance.get<StorageImpl>()),
         ),
       ),
     ),

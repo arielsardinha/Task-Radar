@@ -4,13 +4,16 @@ import 'package:go_router/go_router.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:task_radar/components/botton_navigator/navigation_bar_enum.dart';
 import 'package:task_radar/components/botton_navigator/task_radar_bottom_navigator.dart';
+import 'package:task_radar/data/storage/storage.dart';
+import 'package:task_radar/global/providers/provider_theme.dart';
 import 'package:task_radar/modules/profile/bloc/profile_bloc.dart';
 import 'package:task_radar/modules/profile/bloc/profile_event.dart';
 import 'package:task_radar/modules/profile/bloc/profile_state.dart';
 import 'package:task_radar/routes/routes.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final Storage storage;
+  const ProfileScreen({super.key, required this.storage});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -84,7 +87,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        const SizedBox(width: 60, height: 32),
+                        _ThemeToggleButton(
+                          isLoading: isLoading,
+                          isDark: context.watch<ProviderTheme>().isDarkMode,
+                          onToggleTheme: () {
+                            context.read<ProviderTheme>().toggleTheme(
+                              widget.storage,
+                            );
+                          },
+                        ),
                         const Spacer(),
                         TextButton.icon(
                           key: const Key('ProfileScreen.TextButton.logout'),
@@ -145,6 +156,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       bottomNavigationBar: const TaskRadarBottomNavigator(
         page: NavigationBarEnum.profile,
+      ),
+    );
+  }
+}
+
+class _ThemeToggleButton extends StatelessWidget {
+  final bool isLoading;
+  final VoidCallback onToggleTheme;
+  final bool isDark;
+
+  const _ThemeToggleButton({
+    required this.isLoading,
+    required this.onToggleTheme,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      width: 60,
+      height: 32,
+      child: Material(
+        color: colorScheme.onPrimary,
+        borderRadius: BorderRadius.circular(60),
+        child: InkWell(
+          key: const Key('ProfileScreen.InkWell.themeToggle'),
+          borderRadius: BorderRadius.circular(60),
+          onTap: isLoading ? null : onToggleTheme,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Icon(
+                      Icons.light_mode_outlined,
+                      size: 16,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    Icon(
+                      Icons.dark_mode_outlined,
+                      size: 16,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+              AnimatedAlign(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                alignment: isDark
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.all(2.5),
+                  child: Container(
+                    width: 27,
+                    height: 27,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
