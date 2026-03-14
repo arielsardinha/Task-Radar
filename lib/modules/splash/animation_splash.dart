@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:task_radar/data/repositories/auth_repository.dart';
 import 'package:task_radar/data/storage/storage.dart';
-import 'package:task_radar/data/storage/storage_secure_enum.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/routes/routes.dart';
 
@@ -31,7 +30,7 @@ class SplashAnimationScreen extends StatefulWidget {
   );
 
   static final Duration _splashAnimationDuration = const Duration(
-    milliseconds: 2600,
+    milliseconds: 2000,
   );
 
   static final Duration totalSplashDuration =
@@ -45,15 +44,13 @@ class _SplashAnimationScreenState extends State<SplashAnimationScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _progress;
-  bool _didNavigate = false;
-
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       duration: SplashAnimationScreen._splashAnimationDuration,
       vsync: this,
-    )..forward();
+    );
     _progress = CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOutCubic,
@@ -62,30 +59,26 @@ class _SplashAnimationScreenState extends State<SplashAnimationScreen>
   }
 
   Future<void> _bootstrapSession() async {
-    final delayFuture = Future<void>.delayed(
-      SplashAnimationScreen.totalSplashDuration,
-    );
+    final user = await widget.authRepository.refreshSession();
 
-    final hasAuthInStorage =
-        await widget.storage.getItem(StorageSecureEnum.auth_jwt) != null;
+    await Future<void>.delayed(SplashAnimationScreen._splashWaitBeforeDuration);
+    if (!mounted) {
+      return;
+    }
 
-    final user = hasAuthInStorage
-        ? await widget.authRepository.refreshSession()
-        : null;
+    final animationFuture = _controller.forward(from: 0.0);
 
-    await delayFuture;
-    if (!mounted || _didNavigate) {
+    await animationFuture;
+    if (!mounted) {
       return;
     }
 
     if (user != null) {
       context.read<ProviderUser>().user = user;
-      _didNavigate = true;
       GoRouter.of(context).go(Routes.home);
       return;
     }
 
-    _didNavigate = true;
     GoRouter.of(context).go(Routes.login);
   }
 
