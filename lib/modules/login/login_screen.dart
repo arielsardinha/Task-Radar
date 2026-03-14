@@ -41,14 +41,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       TextInput.finishAutofillContext(shouldSave: true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Login realizado com sucesso.',
-            key: Key('LoginScreen.Text.feedbackSuccess'),
-          ),
-        ),
-      );
       return;
     }
 
