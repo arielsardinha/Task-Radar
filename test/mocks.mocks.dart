@@ -11,6 +11,7 @@ import 'package:mockito/src/dummies.dart' as _i8;
 import 'package:task_radar/data/adapter/request_adapter.dart' as _i7;
 import 'package:task_radar/data/adapter/response_adapter.dart' as _i6;
 import 'package:task_radar/data/network/http_service_adapter.dart' as _i5;
+import 'package:task_radar/data/repositories/login_repository.dart' as _i9;
 import 'package:task_radar/data/storage/storage.dart' as _i3;
 
 // ignore_for_file: type=lint
@@ -1198,4 +1199,18 @@ class MockDio extends _i1.Mock implements _i2.Dio {
             ),
           )
           as _i2.Dio);
+}
+
+/// A class which mocks [LoginRepository].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockLoginRepository extends _i1.Mock implements _i9.LoginRepository {
+  @override
+  _i4.Future<void> login(String? name, String? password) =>
+      (super.noSuchMethod(
+            Invocation.method(#login, [name, password]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
 }

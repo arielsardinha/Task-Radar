@@ -42,7 +42,12 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       TextInput.finishAutofillContext(shouldSave: true);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login realizado com sucesso.')),
+        const SnackBar(
+          content: Text(
+            'Login realizado com sucesso.',
+            key: Key('LoginScreen.Text.feedbackSuccess'),
+          ),
+        ),
       );
       return;
     }
@@ -51,6 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
       const SnackBar(
         content: Text(
           'Falha ao realizar login. Verifique suas credenciais e tente novamente.',
+          key: Key('LoginScreen.Text.feedbackError'),
         ),
       ),
     );
@@ -98,6 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 28),
                           TextFormField(
+                            key: const Key('LoginScreen.TextFormField.username'),
                             controller: _usernameController,
                             focusNode: _usernameFocusNode,
                             enabled: !widget.viewModel.isLoading,
@@ -128,6 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
+                            key: const Key('LoginScreen.TextFormField.password'),
                             controller: _passwordController,
                             focusNode: _passwordFocusNode,
                             enabled: !widget.viewModel.isLoading,
@@ -170,6 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           const SizedBox(height: 16),
                           ElevatedButton(
+                            key: const Key('LoginScreen.ElevatedButton.submit'),
                             onPressed: widget.viewModel.isLoading
                                 ? null
                                 : () => _submit(
