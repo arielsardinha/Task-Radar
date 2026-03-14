@@ -1,8 +1,27 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
 class SplashAnimationScreen extends StatefulWidget {
   const SplashAnimationScreen({super.key});
+
+  /// Duração de espera antes de iniciar a animação da splash
+  static final Duration _splashWaitBeforeDuration = Duration(
+    milliseconds: switch (Platform.isAndroid) {
+      true => 300,
+      // o iOS não possui a splash nativa paradona do Android 12+
+      // então, para manter a ID Visual, geramos um tempo de espera fictício maior
+      false => 1000,
+    },
+  );
+
+  static final Duration _splashAnimationDuration = const Duration(
+    milliseconds: 2600,
+  );
+
+  static final Duration totalSplashDuration =
+      (_splashWaitBeforeDuration + _splashAnimationDuration) * 1.25;
 
   @override
   State<SplashAnimationScreen> createState() => _SplashAnimationScreenState();
@@ -17,7 +36,7 @@ class _SplashAnimationScreenState extends State<SplashAnimationScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 2600),
+      duration: SplashAnimationScreen._splashAnimationDuration,
       vsync: this,
     )..forward();
     _progress = CurvedAnimation(
