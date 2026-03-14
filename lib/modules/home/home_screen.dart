@@ -39,7 +39,6 @@ class _HomeScreenState extends State<HomeScreen> {
             context: context,
             isScrollControlled: true,
             showDragHandle: true,
-            backgroundColor: const Color(0xFFF7F2FA),
             builder: (_) => NewTaskBottomSheet(
               onSubmit: ({required name, required description}) async {
                 _homeBloc.add(

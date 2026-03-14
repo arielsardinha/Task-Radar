@@ -1,62 +1,114 @@
 import 'package:flutter/material.dart';
 
-sealed class AppTheme {
-  static const Color _lightPrimary = Color(0xFF6750A4);
-  static const Color _lightOnPrimary = Color(0xFFFFFFFF);
-  static const Color _lightOutline = Color(0xFF79747E);
-  static const Color _lightOnSurfaceVariant = Color(0xFF49454F);
-  static const Color _lightSurface = Color(0xFFFEF7FF);
-  static const Color _lightBackground = Color(0xFFE7E7E7);
-  static const Color _lightOnSurface = Color(0xFF1D1B20);
+class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
+  final Color success;
+  final Color successContainer;
+  final Color pending;
 
-  static const Color _darkPrimary = Color(0xFFB39DDB);
-  static const Color _darkOnPrimary = Color(0xFF2E1F55);
-  static const Color _darkOutline = Color(0xFF9A93A8);
-  static const Color _darkOnSurfaceVariant = Color(0xFFC9C4D0);
-  static const Color _darkSurface = Color(0xFF070417);
-  static const Color _darkBackground = Color(0xFF070417);
-  static const Color _darkOnSurface = Color(0xFFEAE6F2);
+  const AppSemanticColors({
+    required this.success,
+    required this.successContainer,
+    required this.pending,
+  });
+
+  @override
+  AppSemanticColors copyWith({
+    Color? success,
+    Color? successContainer,
+    Color? pending,
+  }) {
+    return AppSemanticColors(
+      success: success ?? this.success,
+      successContainer: successContainer ?? this.successContainer,
+      pending: pending ?? this.pending,
+    );
+  }
+
+  @override
+  AppSemanticColors lerp(ThemeExtension<AppSemanticColors>? other, double t) {
+    if (other is! AppSemanticColors) {
+      return this;
+    }
+
+    return AppSemanticColors(
+      success: Color.lerp(success, other.success, t) ?? success,
+      successContainer:
+          Color.lerp(successContainer, other.successContainer, t) ??
+          successContainer,
+      pending: Color.lerp(pending, other.pending, t) ?? pending,
+    );
+  }
+}
+
+sealed class AppTheme {
+  static const Color _seed = Color(0xFF6750A4);
+  static const Color _lightScaffold = Color(0xFFE7E7E7);
+  static const Color _darkScaffold = Color(0xFF070417);
+
+  static const AppSemanticColors _lightSemantic = AppSemanticColors(
+    success: Color(0xFF31CD84),
+    successContainer: Color(0x1F31CD84),
+    pending: Color(0xFFD9D2E9),
+  );
+
+  static const AppSemanticColors _darkSemantic = AppSemanticColors(
+    success: Color(0xFF7EE2B2),
+    successContainer: Color(0x2A7EE2B2),
+    pending: Color(0xFF8A829A),
+  );
 
   static ThemeData get light => _buildTheme(
     brightness: Brightness.light,
-    colorScheme: const ColorScheme(
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: _seed,
       brightness: Brightness.light,
-      primary: _lightPrimary,
-      onPrimary: _lightOnPrimary,
-      secondary: Color(0xFF625B71),
-      onSecondary: Color(0xFFFFFFFF),
-      error: Color(0xFFB3261E),
-      onError: Color(0xFFFFFFFF),
-      surface: _lightSurface,
-      onSurface: _lightOnSurface,
-      outline: _lightOutline,
-      onSurfaceVariant: _lightOnSurfaceVariant,
+    ).copyWith(
+      primary: const Color(0xFF6750A4),
+      onPrimary: const Color(0xFFFFFFFF),
+      primaryContainer: const Color(0xFFEADDFF),
+      onPrimaryContainer: const Color(0xFF4F378A),
+      secondary: const Color(0xFF625B71),
+      onSecondary: const Color(0xFFFFFFFF),
+      secondaryContainer: const Color(0xFFE8DEF8),
+      onSecondaryContainer: const Color(0xFF4A4459),
+      error: const Color(0xFFB3261E),
+      onError: const Color(0xFFFFFFFF),
+      surface: const Color(0xFFFEF7FF),
+      onSurface: const Color(0xFF1D1B20),
+      onSurfaceVariant: const Color(0xFF49454F),
+      outline: const Color(0xFF79747E),
+      outlineVariant: const Color(0xFFCAC4D0),
+      surfaceContainer: const Color(0xFFF3EDF7),
+      inverseSurface: const Color(0xFF322F35),
+      onInverseSurface: const Color(0xFFF5EFF7),
+      inversePrimary: const Color(0xFFD0BCFF),
+      scrim: const Color(0xFF000000),
     ),
-    scaffoldBackground: _lightBackground,
+    scaffoldBackground: _lightScaffold,
+    semanticColors: _lightSemantic,
   );
 
   static ThemeData get dark => _buildTheme(
     brightness: Brightness.dark,
-    colorScheme: const ColorScheme(
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: _seed,
       brightness: Brightness.dark,
-      primary: _darkPrimary,
-      onPrimary: _darkOnPrimary,
-      secondary: Color(0xFFCCC2DC),
-      onSecondary: Color(0xFF332D41),
-      error: Color(0xFFF2B8B5),
-      onError: Color(0xFF601410),
-      surface: _darkSurface,
-      onSurface: _darkOnSurface,
-      outline: _darkOutline,
-      onSurfaceVariant: _darkOnSurfaceVariant,
+    ).copyWith(
+      surface: const Color(0xFF070417),
+      inverseSurface: const Color(0xFFEAE6F2),
+      onInverseSurface: const Color(0xFF322F35),
+      inversePrimary: const Color(0xFF6750A4),
+      scrim: const Color(0xFF000000),
     ),
-    scaffoldBackground: _darkBackground,
+    scaffoldBackground: _darkScaffold,
+    semanticColors: _darkSemantic,
   );
 
   static ThemeData _buildTheme({
     required Brightness brightness,
     required ColorScheme colorScheme,
     required Color scaffoldBackground,
+    required AppSemanticColors semanticColors,
   }) {
     final base = ThemeData(
       useMaterial3: true,
@@ -94,6 +146,7 @@ sealed class AppTheme {
 
     return base.copyWith(
       textTheme: textTheme,
+      extensions: <ThemeExtension<dynamic>>[semanticColors],
       appBarTheme: AppBarTheme(
         backgroundColor: scaffoldBackground,
         elevation: 0,
@@ -194,9 +247,13 @@ sealed class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: colorScheme.surface,
-        contentTextStyle: textTheme.bodyLarge,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: colorScheme.inverseSurface,
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onInverseSurface,
+        ),
+        actionTextColor: colorScheme.inversePrimary,
+        closeIconColor: colorScheme.onInverseSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
     );
   }

@@ -125,35 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.badge_outlined,
-                              size: 18,
-                              color: colorScheme.onSurface,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              profile.type,
-                              style: textTheme.labelLarge?.copyWith(
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    Center(child: _UserInfoLabel(type: profile.type)),
                     const SizedBox(height: 16),
                     Divider(color: colorScheme.outlineVariant),
                     const SizedBox(height: 8),
@@ -173,6 +145,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       bottomNavigationBar: const TaskRadarBottomNavigator(
         page: NavigationBarEnum.profile,
+      ),
+    );
+  }
+}
+
+class _UserInfoLabel extends StatelessWidget {
+  final String type;
+
+  const _UserInfoLabel({required this.type});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Container(
+        height: 32,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.badge_outlined,
+              size: 18,
+              color: colorScheme.onSecondaryContainer,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              type,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: colorScheme.onSecondaryContainer,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

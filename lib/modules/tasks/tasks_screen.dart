@@ -10,6 +10,7 @@ import 'package:task_radar/modules/tasks/bloc/tasks_bloc.dart';
 import 'package:task_radar/modules/tasks/bloc/tasks_event.dart';
 import 'package:task_radar/modules/tasks/bloc/tasks_state.dart';
 import 'package:task_radar/modules/tasks/components/edit_task_bottom_sheet.dart';
+import 'package:task_radar/theme/app_theme.dart';
 
 class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});
@@ -55,7 +56,6 @@ class _TasksScreenState extends State<TasksScreen> {
             context: context,
             isScrollControlled: true,
             showDragHandle: true,
-            backgroundColor: const Color(0xFFF7F2FA),
             builder: (_) => NewTaskBottomSheet(
               onSubmit: ({required name, required description}) async {
                 _tasksBloc.add(
@@ -258,7 +258,6 @@ class _TasksScreenState extends State<TasksScreen> {
                             context: context,
                             isScrollControlled: true,
                             showDragHandle: true,
-                            backgroundColor: const Color(0xFFF7F2FA),
                             builder: (_) => EditTaskBottomSheet(
                               initialName: task.name,
                               initialDescription: task.description,
@@ -369,6 +368,13 @@ class _TaskItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final semanticColors =
+        Theme.of(context).extension<AppSemanticColors>() ??
+        const AppSemanticColors(
+          success: Color(0xFF31CD84),
+          successContainer: Color(0x1F31CD84),
+          pending: Color(0xFFD9D2E9),
+        );
     final isCompleted = task.status == TaskStatus.completed;
 
     return Hero(
@@ -382,14 +388,14 @@ class _TaskItem extends StatelessWidget {
         },
         background: Container(
           margin: const EdgeInsets.only(bottom: 8),
-          color: const Color(0xFF31CD84).withValues(alpha: 0.12),
+          color: semanticColors.successContainer,
           alignment: Alignment.centerLeft,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: const Icon(Icons.check_circle),
         ),
         secondaryBackground: Container(
           margin: const EdgeInsets.only(bottom: 8),
-          color: const Color(0xFF31CD84).withValues(alpha: 0.12),
+          color: semanticColors.successContainer,
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: const Icon(Icons.check_circle),
@@ -401,9 +407,7 @@ class _TaskItem extends StatelessWidget {
             onTap: () => onTap(task),
             leading: Icon(
               isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: isCompleted
-                  ? const Color(0xFF31CD84)
-                  : colorScheme.onSurface,
+              color: isCompleted ? semanticColors.success : colorScheme.onSurface,
             ),
             title: Text(task.name),
             subtitle: task.description.trim().isEmpty

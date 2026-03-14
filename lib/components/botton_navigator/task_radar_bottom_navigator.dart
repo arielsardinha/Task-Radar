@@ -19,7 +19,7 @@ class TaskRadarBottomNavigator extends StatelessWidget {
         height: 80,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFFF3EDF7),
+          color: colorScheme.surfaceContainer,
           borderRadius: BorderRadius.circular(80),
         ),
         child: Row(
@@ -95,7 +95,7 @@ class _NavigationItem extends StatelessWidget {
                 height: 32,
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFFE8DEF8)
+                      ? Theme.of(context).colorScheme.secondaryContainer
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(100),
                 ),

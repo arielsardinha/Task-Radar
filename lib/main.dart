@@ -24,7 +24,7 @@ class InitialAplication extends StatelessWidget {
         title: 'Task Radar',
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
-        themeMode: ThemeMode.system,
+        themeMode: ThemeMode.light,
         routerConfig: AppRoutes.router,
       ),
     );
