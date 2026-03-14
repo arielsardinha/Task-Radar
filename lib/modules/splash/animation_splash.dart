@@ -10,8 +10,6 @@ class SplashAnimationScreen extends StatefulWidget {
 
 class _SplashAnimationScreenState extends State<SplashAnimationScreen>
     with SingleTickerProviderStateMixin {
-  static const _shapeColor = Color(0xFFB39DDB);
-
   late final AnimationController _controller;
   late final Animation<double> _progress;
 
@@ -22,7 +20,10 @@ class _SplashAnimationScreenState extends State<SplashAnimationScreen>
       duration: const Duration(milliseconds: 2600),
       vsync: this,
     )..forward();
-    _progress = CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic);
+    _progress = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutCubic,
+    );
   }
 
   @override
@@ -31,16 +32,10 @@ class _SplashAnimationScreenState extends State<SplashAnimationScreen>
     super.dispose();
   }
 
-  double _segment(double p, double start, double end) {
-    if (p <= start) return 0;
-    if (p >= end) return 1;
-    return (p - start) / (end - start);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF070417),
+      backgroundColor: Colors.black,
       body: LayoutBuilder(
         builder: (context, constraints) {
           final viewport = Size(constraints.maxWidth, constraints.maxHeight);
@@ -49,35 +44,8 @@ class _SplashAnimationScreenState extends State<SplashAnimationScreen>
             animation: _progress,
             builder: (context, _) {
               final p = _progress.value;
-              final textOpacity = Curves.easeIn.transform(_segment(p, 0.86, 1.0));
-
               return Stack(
-                children: [
-                  _AnimatedShape(
-                    size: viewport,
-                    progress: p,
-                    shapeColor: _shapeColor,
-                  ),
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: Center(
-                        child: Opacity(
-                          opacity: textOpacity,
-                          child: const Text(
-                            'Splash',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'Work Sans',
-                              fontSize: 34,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.68,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                children: [_AnimatedShape(size: viewport, progress: p)],
               );
             },
           );
@@ -88,15 +56,10 @@ class _SplashAnimationScreenState extends State<SplashAnimationScreen>
 }
 
 class _AnimatedShape extends StatelessWidget {
-  const _AnimatedShape({
-    required this.size,
-    required this.progress,
-    required this.shapeColor,
-  });
+  const _AnimatedShape({required this.size, required this.progress});
 
   final Size size;
   final double progress;
-  final Color shapeColor;
 
   double _lerp(double a, double b, double t) {
     return a + (b - a) * t;
@@ -110,14 +73,16 @@ class _AnimatedShape extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shapeColor = Theme.of(context).colorScheme.primary;
     final viewportCenterX = size.width / 2;
     final viewportCenterY = size.height / 2;
     final centerX = (size.width - 100) / 2;
     final startTop = size.height * 0.71;
     final endTop = size.height * 0.44;
 
-    final moveAndRotateT =
-        Curves.easeOutCubic.transform(_segment(progress, 0.0, 0.36));
+    final moveAndRotateT = Curves.easeOutCubic.transform(
+      _segment(progress, 0.0, 0.36),
+    );
     final shrinkT = Curves.easeInOut.transform(_segment(progress, 0.36, 0.56));
     final roundT = Curves.easeInOut.transform(_segment(progress, 0.56, 0.72));
     final expandT = Curves.easeInCubic.transform(_segment(progress, 0.72, 1.0));
