@@ -152,6 +152,33 @@ void main() {
 
       verifyZeroInteractions(taskRepository);
     });
+
+    test('deve emitir Failure quando getAllByUser lancar excecao', () async {
+      stubAuthenticated();
+      when(
+        taskRepository.getAllByUser(userId: 77),
+      ).thenThrow(Exception('erro'));
+
+      tasksBloc.add(TasksEventLoad());
+
+      await expectLater(
+        tasksBloc.stream,
+        emitsInOrder([
+          isA<TasksState>().having(
+            (s) => s.status,
+            'status',
+            TasksStateStatus.loading,
+          ),
+          isA<TasksState>()
+              .having((s) => s.status, 'status', TasksStateStatus.failure)
+              .having(
+                (s) => s.message,
+                'message',
+                'Falha ao carregar tarefas.',
+              ),
+        ]),
+      );
+    });
   });
 
   group('TasksBloc - view operations', () {
@@ -232,6 +259,41 @@ void main() {
               .having((s) => s.visibleTasks.length, 'visibleTasks.length', 2)
               .having((s) => s.visibleTasks.first.name, 'first.name', 'Gamma')
               .having((s) => s.visibleTasks.last.name, 'last.name', 'Alpha'),
+        ]),
+      );
+    });
+
+    test('deve ordenar por status de conclusao', () async {
+      stubAuthenticated();
+      final tasks = [pendingAlpha, completedBeta, pendingGamma];
+      when(
+        taskRepository.getAllByUser(userId: 77),
+      ).thenAnswer((_) async => tasks);
+
+      tasksBloc
+        ..add(TasksEventLoad())
+        ..add(TasksEventOrderChanged(TaskListOrder.completionStatus));
+
+      await expectLater(
+        tasksBloc.stream,
+        emitsInOrder([
+          isA<TasksState>().having(
+            (s) => s.status,
+            'status',
+            TasksStateStatus.loading,
+          ),
+          isA<TasksState>().having(
+            (s) => s.status,
+            'status',
+            TasksStateStatus.success,
+          ),
+          isA<TasksState>()
+              .having((s) => s.order, 'order', TaskListOrder.completionStatus)
+              .having(
+                (s) => s.visibleTasks.first.status,
+                'first.status',
+                TaskStatus.completed,
+              ),
         ]),
       );
     });
@@ -366,6 +428,93 @@ void main() {
       );
     });
 
+    test(
+      'deve alternar status e recarregar lista quando toggle funcionar',
+      () async {
+        stubAuthenticated();
+        final tasks = [pendingAlpha, completedBeta];
+        when(
+          taskRepository.getAllByUser(userId: 77),
+        ).thenAnswer((_) async => tasks);
+        when(taskRepository.toggleCompleted(pendingAlpha)).thenAnswer(
+          (_) async => pendingAlpha.copyWith(status: TaskStatus.completed),
+        );
+
+        tasksBloc
+          ..add(TasksEventLoad())
+          ..add(TasksEventToggleCompleted(pendingAlpha));
+
+        await expectLater(
+          tasksBloc.stream,
+          emitsInOrder([
+            isA<TasksState>().having(
+              (s) => s.status,
+              'status',
+              TasksStateStatus.loading,
+            ),
+            isA<TasksState>().having(
+              (s) => s.status,
+              'status',
+              TasksStateStatus.success,
+            ),
+            isA<TasksState>().having(
+              (s) => s.status,
+              'status',
+              TasksStateStatus.loading,
+            ),
+            isA<TasksState>().having(
+              (s) => s.status,
+              'status',
+              TasksStateStatus.success,
+            ),
+          ]),
+        );
+
+        verify(taskRepository.toggleCompleted(pendingAlpha)).called(1);
+        verify(taskRepository.getAllByUser(userId: 77)).called(greaterThan(1));
+      },
+    );
+
+    test('deve emitir Failure quando updateTask falhar', () async {
+      when(taskRepository.updateTask(any)).thenThrow(Exception('erro'));
+
+      tasksBloc.add(
+        TasksEventUpdateTask(
+          task: pendingAlpha,
+          name: 'Alpha editada',
+          description: 'nova descricao',
+        ),
+      );
+
+      await expectLater(
+        tasksBloc.stream,
+        emits(
+          isA<TasksState>()
+              .having((s) => s.status, 'status', TasksStateStatus.failure)
+              .having(
+                (s) => s.message,
+                'message',
+                'Falha ao atualizar tarefa.',
+              ),
+        ),
+      );
+    });
+
+    test('deve emitir Failure quando delete falhar', () async {
+      when(taskRepository.delete(any)).thenThrow(Exception('erro'));
+
+      tasksBloc.add(TasksEventDeleteTask(pendingAlpha));
+
+      await expectLater(
+        tasksBloc.stream,
+        emits(
+          isA<TasksState>()
+              .having((s) => s.status, 'status', TasksStateStatus.failure)
+              .having((s) => s.message, 'message', 'Falha ao excluir tarefa.'),
+        ),
+      );
+    });
+
     test('deve criar tarefa e recarregar lista', () async {
       stubAuthenticated();
       when(
@@ -407,6 +556,59 @@ void main() {
         ),
       ).called(1);
       verify(taskRepository.getAllByUser(userId: 77)).called(1);
+    });
+
+    test('deve emitir Failure quando create falhar', () async {
+      stubAuthenticated();
+      when(
+        taskRepository.create(
+          userId: 77,
+          name: 'Nova',
+          description: 'Descricao',
+        ),
+      ).thenThrow(Exception('erro'));
+
+      tasksBloc.add(
+        TasksEventCreateTask(name: 'Nova', description: 'Descricao'),
+      );
+
+      await expectLater(
+        tasksBloc.stream,
+        emits(
+          isA<TasksState>()
+              .having((s) => s.status, 'status', TasksStateStatus.failure)
+              .having((s) => s.message, 'message', 'Falha ao criar tarefa.'),
+        ),
+      );
+    });
+
+    test('deve emitir Failure quando create for chamado sem user id', () async {
+      stubAuthenticated(meModel.copyWith(id: null));
+
+      tasksBloc.add(
+        TasksEventCreateTask(name: 'Nova', description: 'Descricao'),
+      );
+
+      await expectLater(
+        tasksBloc.stream,
+        emits(
+          isA<TasksState>()
+              .having((s) => s.status, 'status', TasksStateStatus.failure)
+              .having(
+                (s) => s.message,
+                'message',
+                'Nao foi possivel identificar o usuario autenticado.',
+              ),
+        ),
+      );
+
+      verifyNever(
+        taskRepository.create(
+          userId: anyNamed('userId'),
+          name: anyNamed('name'),
+          description: anyNamed('description'),
+        ),
+      );
     });
   });
 }
