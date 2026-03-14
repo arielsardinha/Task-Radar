@@ -4,7 +4,6 @@ import 'package:task_radar/components/botton_navigator/navigation_bar_enum.dart'
 import 'package:task_radar/components/botton_navigator/task_radar_bottom_navigator.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/modules/home/bloc/home_bloc.dart';
-import 'package:task_radar/modules/home/bloc/home_event.dart';
 import 'package:task_radar/modules/home/bloc/home_state.dart';
 import 'package:task_radar/modules/home/components/new_task_bottom_sheet.dart';
 import 'package:task_radar/modules/home/components/task_overview_card.dart';
