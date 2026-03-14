@@ -279,7 +279,7 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
         return true;
       }
 
-      return task.name.toLowerCase().contains(normalizedQuery);
+      return task.description.toLowerCase().contains(normalizedQuery);
     }).toList();
 
     filtered.sort((a, b) {

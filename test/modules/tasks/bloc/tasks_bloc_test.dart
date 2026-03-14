@@ -155,7 +155,7 @@ void main() {
   });
 
   group('TasksBloc - view operations', () {
-    test('deve filtrar busca por name', () async {
+    test('deve filtrar busca por descricao', () async {
       stubAuthenticated();
       final tasks = [pendingAlpha, completedBeta, pendingGamma];
       when(
@@ -164,7 +164,7 @@ void main() {
 
       tasksBloc
         ..add(TasksEventLoad())
-        ..add(TasksEventSearchChanged('Beta'));
+        ..add(TasksEventSearchChanged('revisar'));
 
       await expectLater(
         tasksBloc.stream,
@@ -180,7 +180,7 @@ void main() {
             TasksStateStatus.success,
           ),
           isA<TasksState>()
-              .having((s) => s.query, 'query', 'Beta')
+              .having((s) => s.query, 'query', 'revisar')
               .having((s) => s.visibleTasks.length, 'visibleTasks.length', 1)
               .having(
                 (s) => s.visibleTasks.first.localId,
