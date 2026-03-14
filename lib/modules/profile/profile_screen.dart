@@ -175,57 +175,106 @@ class _ThemeToggleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final borderRadius = BorderRadius.circular(60.369);
 
-    return SizedBox(
-      width: 60,
-      height: 32,
-      child: Material(
-        color: colorScheme.onPrimary,
-        borderRadius: BorderRadius.circular(60),
-        child: InkWell(
-          key: const Key('ProfileScreen.InkWell.themeToggle'),
-          borderRadius: BorderRadius.circular(60),
-          onTap: isLoading ? null : onToggleTheme,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final trackColor = isDark ? colorScheme.primary : colorScheme.onPrimary;
+    final trackBorderColor = isDark
+        ? colorScheme.primary.withValues(alpha: 0.12)
+        : colorScheme.outlineVariant;
+
+    final inactiveIconColor = isDark
+        ? colorScheme.onPrimary.withValues(alpha: 0.68)
+        : colorScheme.onSurfaceVariant;
+
+    final activeThumbColor = isDark
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.primary;
+
+    final activeThumbIconColor = isDark
+        ? colorScheme.primaryContainer
+        : colorScheme.onPrimary;
+
+    return Opacity(
+      opacity: isLoading ? 0.7 : 1,
+      child: SizedBox(
+        width: 60.369,
+        height: 32.197,
+        child: Material(
+          color: Colors.transparent,
+          child: Ink(
+            decoration: BoxDecoration(
+              color: trackColor,
+              borderRadius: borderRadius,
+              border: Border.all(color: trackBorderColor),
+            ),
+            child: InkWell(
+              key: const Key('ProfileScreen.InkWell.themeToggle'),
+              borderRadius: borderRadius,
+              onTap: isLoading ? null : onToggleTheme,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 2.945,
+                  vertical: 2.945,
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    Icon(
-                      Icons.light_mode_outlined,
-                      size: 16,
-                      color: colorScheme.onSurfaceVariant,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5.104),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(
+                            Icons.light_mode_outlined,
+                            size: 16.098,
+                            color: isDark
+                                ? inactiveIconColor
+                                : colorScheme.primary,
+                          ),
+                          Icon(
+                            Icons.dark_mode_outlined,
+                            size: 16.098,
+                            color: isDark
+                                ? colorScheme.onPrimary
+                                : inactiveIconColor,
+                          ),
+                        ],
+                      ),
                     ),
-                    Icon(
-                      Icons.dark_mode_outlined,
-                      size: 16,
-                      color: colorScheme.onSurfaceVariant,
+                    AnimatedAlign(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeInOut,
+                      alignment: isDark
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        width: 26.307,
+                        height: 26.307,
+                        decoration: BoxDecoration(
+                          color: activeThumbColor,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: (isDark ? Colors.white : Colors.black)
+                                  .withValues(alpha: 0.25),
+                              blurRadius: 2.012,
+                              offset: Offset(0, isDark ? -1.006 : 1.006),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          isDark
+                              ? Icons.dark_mode_outlined
+                              : Icons.light_mode_outlined,
+                          size: 15.5,
+                          color: activeThumbIconColor,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-              AnimatedAlign(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                alignment: isDark
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.all(2.5),
-                  child: Container(
-                    width: 27,
-                    height: 27,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
