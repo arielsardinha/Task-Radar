@@ -7,7 +7,7 @@ import 'package:task_radar/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Bindings.register();
+  await Bindings.register();
 
   runApp(const InitialAplication());
 }

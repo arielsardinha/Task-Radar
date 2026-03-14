@@ -3,12 +3,14 @@ import 'package:dio/dio.dart' as dio;
 import 'package:task_radar/data/interceptors/auth_interceptor.dart';
 import 'package:task_radar/data/network/http_service_adapter.dart';
 import 'package:task_radar/data/repositories/auth_repository.dart';
+import 'package:task_radar/data/repositories/task_repository_impl.dart';
 import 'package:task_radar/data/storage/storage_impl.dart';
 import 'package:dio/io.dart' show IOHttpClientAdapter;
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:sqflite/sqflite.dart' show Database, openDatabase;
 
 sealed class Bindings {
-  static void register() {
+  static Future<void> register() async {
     final instance = GetIt.instance;
 
     const apiBaseUrl = String.fromEnvironment('BASE_URL_DUMMYJSON');
@@ -33,9 +35,7 @@ sealed class Bindings {
         return client;
       },
     );
-    instance.registerLazySingleton<StorageImpl>(
-      () => const StorageImpl(),
-    );
+    instance.registerLazySingleton<StorageImpl>(() => const StorageImpl());
 
     instance.registerLazySingleton(
       () => HttpServiceAdapterImp(client: instance.get<dio.Dio>()),
@@ -48,11 +48,24 @@ sealed class Bindings {
       ),
     );
 
+    instance.registerLazySingletonAsync<Database>(
+      () async => await openDatabase('task_radar.db', version: 1),
+    );
+
+    instance.registerLazySingletonAsync<TaskRepositoryImpl>(() async {
+      final database = await instance.getAsync<Database>();
+      final repository = TaskRepositoryImpl(database: database);
+      await repository.ensureSchema();
+      return repository;
+    });
+
     instance.get<dio.Dio>().interceptors.add(
       AuthInterceptor(
         client: instance.get<HttpServiceAdapterImp>(),
         storage: instance.get<StorageImpl>(),
       ),
     );
+
+    await instance.allReady();
   }
 }
