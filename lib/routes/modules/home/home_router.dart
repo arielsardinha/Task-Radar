@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:task_radar/data/repositories/task_repository_impl.dart';
+import 'package:task_radar/data/repositories/user_repository.dart';
 import 'package:task_radar/data/storage/storage_impl.dart';
 import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
@@ -11,6 +12,7 @@ import 'package:task_radar/modules/profile/bloc/profile_bloc.dart';
 import 'package:task_radar/modules/profile/profile_screen.dart';
 import 'package:task_radar/modules/tasks/bloc/tasks_bloc.dart';
 import 'package:task_radar/modules/tasks/tasks_screen.dart';
+import 'package:task_radar/modules/users/bloc/users_bloc.dart';
 import 'package:task_radar/modules/users/users_screen.dart';
 import 'package:task_radar/routes/routes.dart';
 
@@ -72,7 +74,14 @@ sealed class HomeRouter {
 
         return NoTransitionPage<void>(
           key: state.pageKey,
-          child: const UsersScreen(),
+          child: Provider<UsersBloc>(
+            create: (_) => UsersBloc(
+              userRepository: GetIt.instance.get<UserRepository>(),
+            ),
+            child: UsersScreen(
+              taskRepository: GetIt.instance.get<TaskRepositoryImpl>(),
+            ),
+          ),
         );
       },
     ),

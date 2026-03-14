@@ -1,64 +1,60 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:task_radar/components/botton_navigator/navigation_bar_enum.dart';
 import 'package:task_radar/components/botton_navigator/task_radar_bottom_navigator.dart';
-import 'package:task_radar/data/models/me_model.dart';
-import 'package:task_radar/data/repositories/task_repository_impl.dart';
-import 'package:task_radar/data/storage/storage_impl.dart';
-import 'package:task_radar/data/storage/storage_secure_enum.dart';
+import 'package:task_radar/data/repositories/task_repository.dart';
 import 'package:task_radar/domain/task.dart';
 import 'package:task_radar/domain/user.dart';
-import 'package:task_radar/global/providers/provider_user.dart';
-import 'package:provider/provider.dart';
-
-enum UsersFilter { all, admin, moderator }
+import 'package:task_radar/modules/users/bloc/users_bloc.dart';
+import 'package:task_radar/modules/users/bloc/users_event.dart';
+import 'package:task_radar/modules/users/bloc/users_state.dart';
 
 class UsersScreen extends StatefulWidget {
-  const UsersScreen({super.key});
+  final TaskRepository taskRepository;
+
+  const UsersScreen({required this.taskRepository, super.key});
 
   @override
   State<UsersScreen> createState() => _UsersScreenState();
 }
 
 class _UsersScreenState extends State<UsersScreen> {
+  late final UsersBloc _usersBloc;
   final TextEditingController _searchController = TextEditingController();
-  UsersFilter _usersFilter = UsersFilter.all;
-  int? _currentUserId;
+  Timer? _searchDebounce;
 
   @override
   void initState() {
     super.initState();
-    _loadCurrentUserId();
+    _usersBloc = context.read<UsersBloc>();
+    _usersBloc.add(const UsersEventLoad());
   }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadCurrentUserId() async {
-    final storage = GetIt.instance.get<StorageImpl>();
-    final me = await storage.getItemToFactory(
-      StorageSecureEnum.auth_user,
-      fromJson: MeModel.fromJson,
-    );
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _currentUserId = me?.id;
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+      _usersBloc.add(UsersEventSearchChanged(value));
     });
   }
 
-  void _openUserTasksBottomSheet(_UserItemData user) {
+  void _openUserTasksBottomSheet(UsersViewData user) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (_) => _UserTasksBottomSheet(user: user),
+      builder: (_) => _UserTasksBottomSheet(
+        user: user,
+        taskRepository: widget.taskRepository,
+      ),
     );
   }
 
@@ -67,145 +63,142 @@ class _UsersScreenState extends State<UsersScreen> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final currentUser = context.read<ProviderUser>().user;
-    final users = [
-      _UserItemData(
-        id: _currentUserId,
-        fullName: currentUser.fullName,
-        email: currentUser.email,
-        role: currentUser.userType,
-        photo: currentUser.photo,
-      ),
-    ];
-
-    final filteredUsers = users
-        .where((user) {
-          final byRole = switch (_usersFilter) {
-            UsersFilter.all => true,
-            UsersFilter.admin => user.role == UserType.admin,
-            UsersFilter.moderator => user.role == UserType.moderator,
-          };
-
-          if (!byRole) {
-            return false;
-          }
-
-          final query = _searchController.text.trim().toLowerCase();
-          if (query.isEmpty) {
-            return true;
-          }
-
-          return user.fullName.toLowerCase().contains(query) ||
-              user.email.toLowerCase().contains(query);
-        })
-        .toList(growable: false);
-
-    final admins = filteredUsers
-        .where((user) => user.role == UserType.admin)
-        .toList(growable: false);
-    final moderators = filteredUsers
-        .where((user) => user.role == UserType.moderator)
-        .toList(growable: false);
-
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    Text(
-                      'Usuários',
-                      style: textTheme.headlineMedium?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _searchController,
-                      onChanged: (_) => setState(() {}),
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.search),
-                        hintText: 'Pesquisar usuários',
-                        filled: true,
-                        fillColor: colorScheme.surfaceContainer,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(28),
-                          borderSide: BorderSide.none,
+        child: BlocBuilder<UsersBloc, UsersState>(
+          bloc: _usersBloc,
+          builder: (context, state) {
+            if (state.status == UsersStateStatus.loading ||
+                state.status == UsersStateStatus.initial) {
+              return const Center(child: CircularProgressIndicator.adaptive());
+            }
+
+            if (state.status == UsersStateStatus.failure) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    state.message ?? 'Não foi possível carregar os usuários.',
+                    style: textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
+            }
+
+            final filteredUsers = state.visibleUsers;
+
+            final admins = filteredUsers.where((user) {
+              return user.role == UserType.admin;
+            }).toList(growable: false);
+            final moderators = filteredUsers.where((user) {
+              return user.role == UserType.moderator;
+            }).toList(growable: false);
+
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        Text(
+                          'Usuários',
+                          style: textTheme.headlineMedium?.copyWith(
+                            color: colorScheme.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    const SizedBox(width: 32),
-                    _UsersFilterChip(
-                      label: 'Todos',
-                      selected: _usersFilter == UsersFilter.all,
-                      onTap: () =>
-                          setState(() => _usersFilter = UsersFilter.all),
-                    ),
-                    const SizedBox(width: 8),
-                    _UsersFilterChip(
-                      label: 'Administradores',
-                      selected: _usersFilter == UsersFilter.admin,
-                      onTap: () =>
-                          setState(() => _usersFilter = UsersFilter.admin),
-                    ),
-                    const SizedBox(width: 8),
-                    _UsersFilterChip(
-                      label: 'Moderadores',
-                      selected: _usersFilter == UsersFilter.moderator,
-                      onTap: () =>
-                          setState(() => _usersFilter = UsersFilter.moderator),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    _UsersSection(
-                      title: 'Administradores',
-                      users: admins,
-                      onTapUser: _openUserTasksBottomSheet,
-                    ),
-                    const SizedBox(height: 16),
-                    _UsersSection(
-                      title: 'Moderadores',
-                      users: moderators,
-                      onTapUser: _openUserTasksBottomSheet,
-                    ),
-                    if (filteredUsers.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 24),
-                        child: Center(
-                          child: Text(
-                            'Nenhum usuário encontrado.',
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _searchController,
+                          onChanged: _onSearchChanged,
+                          decoration: InputDecoration(
+                            prefixIcon: const Icon(Icons.search),
+                            hintText: 'Pesquisar usuários',
+                            filled: true,
+                            fillColor: colorScheme.surfaceContainer,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(28),
+                              borderSide: BorderSide.none,
                             ),
                           ),
                         ),
-                      ),
-                    const SizedBox(height: 120),
-                  ],
-                ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 32),
+                        _UsersFilterChip(
+                          label: 'Todos',
+                          selected: state.filter == UsersFilter.all,
+                          onTap: () => _usersBloc.add(
+                            const UsersEventFilterChanged(UsersFilter.all),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _UsersFilterChip(
+                          label: 'Administradores',
+                          selected: state.filter == UsersFilter.admin,
+                          onTap: () => _usersBloc.add(
+                            const UsersEventFilterChanged(UsersFilter.admin),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _UsersFilterChip(
+                          label: 'Moderadores',
+                          selected: state.filter == UsersFilter.moderator,
+                          onTap: () => _usersBloc.add(
+                            const UsersEventFilterChanged(
+                              UsersFilter.moderator,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        _UsersSection(
+                          title: 'Administradores',
+                          users: admins,
+                          onTapUser: _openUserTasksBottomSheet,
+                        ),
+                        const SizedBox(height: 16),
+                        _UsersSection(
+                          title: 'Moderadores',
+                          users: moderators,
+                          onTapUser: _openUserTasksBottomSheet,
+                        ),
+                        if (filteredUsers.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 24),
+                            child: Center(
+                              child: Text(
+                                'Nenhum usuário encontrado.',
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 120),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
       bottomNavigationBar: const TaskRadarBottomNavigator(
@@ -217,8 +210,8 @@ class _UsersScreenState extends State<UsersScreen> {
 
 class _UsersSection extends StatelessWidget {
   final String title;
-  final List<_UserItemData> users;
-  final ValueChanged<_UserItemData> onTapUser;
+  final List<UsersViewData> users;
+  final ValueChanged<UsersViewData> onTapUser;
 
   const _UsersSection({
     required this.title,
@@ -260,7 +253,7 @@ class _UsersSection extends StatelessWidget {
 }
 
 class _UserListItem extends StatelessWidget {
-  final _UserItemData user;
+  final UsersViewData user;
   final VoidCallback onTap;
 
   const _UserListItem({required this.user, required this.onTap});
@@ -332,9 +325,13 @@ class _UsersFilterChip extends StatelessWidget {
 }
 
 class _UserTasksBottomSheet extends StatefulWidget {
-  final _UserItemData user;
+  final UsersViewData user;
+  final TaskRepository taskRepository;
 
-  const _UserTasksBottomSheet({required this.user});
+  const _UserTasksBottomSheet({
+    required this.user,
+    required this.taskRepository,
+  });
 
   @override
   State<_UserTasksBottomSheet> createState() => _UserTasksBottomSheetState();
@@ -350,12 +347,7 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
   }
 
   Future<List<Task>> _loadUserTasks() async {
-    if (widget.user.id == null) {
-      return const [];
-    }
-
-    final repository = GetIt.instance.get<TaskRepositoryImpl>();
-    return repository.getAllByUser(userId: widget.user.id!);
+    return widget.taskRepository.getAllByUser(userId: widget.user.id!);
   }
 
   @override
@@ -445,7 +437,8 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
                   return ListView.separated(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                     itemCount: tasks.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final task = tasks[index];
                       final isCompleted = task.status == TaskStatus.completed;
@@ -485,27 +478,3 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
   }
 }
 
-final class _UserItemData {
-  final int? id;
-  final String fullName;
-  final String email;
-  final UserType role;
-  final String photo;
-
-  const _UserItemData({
-    required this.id,
-    required this.fullName,
-    required this.email,
-    required this.role,
-    required this.photo,
-  });
-
-  String get initial {
-    final normalized = fullName.trim();
-    if (normalized.isEmpty) {
-      return '?';
-    }
-
-    return normalized.substring(0, 1).toUpperCase();
-  }
-}

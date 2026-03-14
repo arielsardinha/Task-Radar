@@ -4,6 +4,7 @@ import 'package:task_radar/data/interceptors/auth_interceptor.dart';
 import 'package:task_radar/data/network/http_service_adapter.dart';
 import 'package:task_radar/data/repositories/auth_repository.dart';
 import 'package:task_radar/data/repositories/task_repository_impl.dart';
+import 'package:task_radar/data/repositories/user_repository.dart';
 import 'package:task_radar/data/storage/storage_impl.dart';
 import 'package:dio/io.dart' show IOHttpClientAdapter;
 import 'package:flutter/foundation.dart' show kDebugMode;
@@ -46,6 +47,10 @@ sealed class Bindings {
         instance.get<HttpServiceAdapterImp>(),
         instance.get<StorageImpl>(),
       ),
+    );
+
+    instance.registerLazySingleton<UserRepositoryImpl>(
+      () => UserRepositoryImpl(instance.get<HttpServiceAdapterImp>()),
     );
 
     instance.registerSingletonAsync<Database>(
