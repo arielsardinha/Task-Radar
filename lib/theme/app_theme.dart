@@ -42,7 +42,7 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
 
 sealed class AppTheme {
   static const Color _seed = Color(0xFF6750A4);
-  static const Color _lightScaffold = Color(0xFFE7E7E7);
+  static const Color _lightScaffold = Color(0xFFFFFFFF);
   static const Color _darkScaffold = Color(0xFF070417);
 
   static const AppSemanticColors _lightSemantic = AppSemanticColors(
