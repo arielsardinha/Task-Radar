@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:task_radar/modules/splash/animation_splash.dart';
+import 'package:task_radar/routes/router_config.dart';
+import 'package:task_radar/routes/routes.dart';
 import 'package:task_radar/theme/app_theme.dart';
 
 Future<void> main() async {
   runApp(const SplashApp());
-
   await Future.delayed(SplashAnimationScreen.totalSplashDuration);
-
   runApp(const InitialAplication());
 }
 
@@ -32,12 +32,13 @@ class InitialAplication extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      initialRoute: Routes.login,
       debugShowCheckedModeBanner: false,
       title: 'Task Radar',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-      home: Text("Home"),
+      routes: AppRoutes.routes,
     );
   }
 }
