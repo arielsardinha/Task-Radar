@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -6,9 +8,11 @@ import 'package:provider/provider.dart';
 import 'package:task_radar/data/models/me_model.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
 import 'package:task_radar/domain/task.dart';
+import 'package:task_radar/modules/home/components/new_task_bottom_sheet.dart';
 import 'package:task_radar/modules/tasks/bloc/tasks_bloc.dart';
 import 'package:task_radar/modules/tasks/bloc/tasks_event.dart';
 import 'package:task_radar/modules/tasks/bloc/tasks_state.dart';
+import 'package:task_radar/modules/tasks/components/edit_task_bottom_sheet.dart';
 import 'package:task_radar/modules/tasks/tasks_screen.dart';
 
 import '../../mocks.mocks.dart';
@@ -182,6 +186,21 @@ void main() {
     await pumpFrames(tester, 10);
   }
 
+  Future<void> pumpScreenWithoutWaiting(WidgetTester tester) async {
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [GoRoute(path: '/', builder: (_, __) => const TasksScreen())],
+    );
+
+    await tester.pumpWidget(
+      Provider<TasksBloc>.value(
+        value: tasksBloc,
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pump();
+  }
+
   group('TasksScreen', () {
     testWidgets('carrega tarefas e renderiza secoes', (tester) async {
       await pumpScreen(tester);
@@ -300,6 +319,104 @@ void main() {
 
       expect(tasksBloc.state.visibleTasks, isEmpty);
       expect(tasksBloc.state.status, TasksStateStatus.success);
+    });
+
+    testWidgets('exibe loading durante carregamento', (tester) async {
+      final completer = Completer<List<Task>>();
+      when(
+        taskRepository.getAllByUser(userId: anyNamed('userId')),
+      ).thenAnswer((_) => completer.future);
+
+      await pumpScreenWithoutWaiting(tester);
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      completer.complete(List<Task>.from(taskStore));
+      await pumpFrames(tester, 6);
+    });
+
+    testWidgets('exibe erro quando load falha', (tester) async {
+      when(
+        taskRepository.getAllByUser(userId: anyNamed('userId')),
+      ).thenThrow(Exception('erro'));
+
+      await pumpScreen(tester);
+
+      expect(find.text('Falha ao carregar tarefas.'), findsOneWidget);
+      expect(tasksBloc.state.status, TasksStateStatus.failure);
+    });
+
+    testWidgets('abre bottom sheet de nova tarefa e cria tarefa', (
+      tester,
+    ) async {
+      await pumpScreen(tester);
+
+      await tester.tap(
+        find.byKey(const Key('TasksScreen.FloatingActionButton.newTask')),
+      );
+      await pumpFrames(tester, 4);
+
+      expect(find.byType(NewTaskBottomSheet), findsOneWidget);
+
+      final sheet = tester.widget<NewTaskBottomSheet>(
+        find.byType(NewTaskBottomSheet),
+      );
+
+      await sheet.onSubmit(
+        name: 'Nova tarefa',
+        description: 'descricao da nova tarefa',
+      );
+      await pumpFrames(tester, 8);
+
+      expect(find.byType(NewTaskBottomSheet), findsOneWidget);
+    });
+
+    testWidgets('abre edicao e salva alteracoes', (tester) async {
+      await pumpScreen(tester);
+
+      await tester.tap(find.byType(ListTile).first);
+      await pumpFrames(tester, 4);
+
+      expect(find.byType(EditTaskBottomSheet), findsOneWidget);
+
+      final fields = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(TextField),
+      );
+
+      await tester.enterText(fields.at(0), 'Alpha editada');
+      await tester.enterText(fields.at(1), 'descricao editada');
+      await pumpFrames(tester, 2);
+
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Salvar'));
+      await pumpFrames(tester, 8);
+
+      verify(taskRepository.updateTask(any)).called(1);
+      expect(taskStore.any((task) => task.name == 'Alpha editada'), isTrue);
+    });
+
+    testWidgets('renderiza item sem subtitulo quando descricao vazia', (
+      tester,
+    ) async {
+      taskStore = [
+        task(
+          localId: 'no-desc',
+          remoteId: 88,
+          name: 'Sem descricao',
+          description: '',
+          status: TaskStatus.pending,
+        ),
+      ];
+
+      when(
+        taskRepository.getAllByUser(userId: anyNamed('userId')),
+      ).thenAnswer((_) async => List<Task>.from(taskStore));
+
+      await pumpScreen(tester);
+
+      final listTile = tester.widget<ListTile>(find.byType(ListTile).first);
+      expect((listTile.title as Text).data, 'Sem descricao');
+      expect(listTile.subtitle, isNull);
     });
   });
 }
