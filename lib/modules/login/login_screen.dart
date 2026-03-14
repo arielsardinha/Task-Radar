@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/modules/login/bloc/login_bloc.dart';
 import 'package:task_radar/modules/login/bloc/login_event.dart';
