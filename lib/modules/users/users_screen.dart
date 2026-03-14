@@ -138,15 +138,16 @@ class _UsersScreenState extends State<UsersScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 32),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 16),
-                          Text(
-                            'Usuários',
-                            style: textTheme.headlineMedium?.copyWith(
-                              color: colorScheme.onSurface,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                           Text(
+                                'Usuários',
+                                style: textTheme.headlineMedium?.copyWith(
+                                  color: colorScheme.onSurface,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                           const SizedBox(height: 16),
                           TextField(
                             controller: _searchController,
