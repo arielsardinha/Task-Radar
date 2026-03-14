@@ -35,14 +35,14 @@ void main() {
 			);
 			when(storage.setItem(any, any)).thenAnswer((_) async {});
 
-			await sut.login('user@email.com', 'senha123');
+			await sut.login('usuario_teste', 'senha123');
 
 			final capturedRequest = verify(
 				httpServiceAdapter.post<dynamic>(captureAny),
 			).captured.single as RequestAdapter;
 			expect(capturedRequest.path, '/auth/login');
 			expect(capturedRequest.data, {
-				'email': 'user@email.com',
+				'username': 'usuario_teste',
 				'password': 'senha123',
 			});
 
@@ -64,7 +64,7 @@ void main() {
 			);
 
 			expect(
-				() => sut.login('user@email.com', 'senha123'),
+				() => sut.login('usuario_teste', 'senha123'),
 				throwsA(
 					isA<Exception>().having(
 						(error) => error.toString(),
@@ -88,7 +88,7 @@ void main() {
 			);
 
 			expect(
-				() => sut.login('user@email.com', 'senha123'),
+				() => sut.login('usuario_teste', 'senha123'),
 				throwsA(
 					isA<Exception>().having(
 						(error) => error.toString(),
@@ -110,7 +110,7 @@ void main() {
 			);
 
 			expect(
-				() => sut.login('user@email.com', 'senha123'),
+				() => sut.login('usuario_teste', 'senha123'),
 				throwsA(
 					isA<Exception>().having(
 						(error) => error.toString(),

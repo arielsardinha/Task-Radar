@@ -7,7 +7,7 @@ import 'package:task_radar/data/storage/storage.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
 
 abstract interface class LoginRepository {
-  Future<void> login(String email, String password);
+  Future<void> login(String name, String password);
 }
 
 final class LoginRepositoryImpl implements LoginRepository {
@@ -24,12 +24,12 @@ final class LoginRepositoryImpl implements LoginRepository {
   }
 
   @override
-  Future<void> login(String email, String password) async {
+  Future<void> login(String name, String password) async {
     try {
       final response = await _httpServiceAdapter.post(
         RequestAdapter(
           path: "/auth/login",
-          data: {"email": email, "password": password},
+          data: {"username": name, "password": password},
         ),
       );
 
