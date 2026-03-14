@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:task_radar/components/action_chip.dart';
 import 'package:task_radar/components/botton_navigator/navigation_bar_enum.dart';
 import 'package:task_radar/components/botton_navigator/task_radar_bottom_navigator.dart';
 import 'package:task_radar/data/repositories/task_repository.dart';
@@ -136,25 +137,25 @@ class _UsersScreenState extends State<UsersScreen> {
                     child: Row(
                       children: [
                         const SizedBox(width: 32),
-                        _UsersFilterChip(
+                        FilterChipComponent(
                           label: 'Todos',
-                          selected: state.filter == UsersFilter.all,
+                          isSelected: state.filter == UsersFilter.all,
                           onTap: () => _usersBloc.add(
                             const UsersEventFilterChanged(UsersFilter.all),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        _UsersFilterChip(
+                        FilterChipComponent(
                           label: 'Administradores',
-                          selected: state.filter == UsersFilter.admin,
+                          isSelected: state.filter == UsersFilter.admin,
                           onTap: () => _usersBloc.add(
                             const UsersEventFilterChanged(UsersFilter.admin),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        _UsersFilterChip(
+                        FilterChipComponent(
                           label: 'Moderadores',
-                          selected: state.filter == UsersFilter.moderator,
+                          isSelected: state.filter == UsersFilter.moderator,
                           onTap: () => _usersBloc.add(
                             const UsersEventFilterChanged(
                               UsersFilter.moderator,
@@ -292,38 +293,7 @@ class _UserListItem extends StatelessWidget {
   }
 }
 
-class _UsersFilterChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
 
-  const _UsersFilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return ActionChip(
-      label: Text(label),
-      onPressed: onTap,
-      avatar: selected ? const Icon(Icons.check, size: 16) : null,
-      side: BorderSide(color: colorScheme.outlineVariant),
-      backgroundColor: selected
-          ? colorScheme.secondaryContainer
-          : Colors.transparent,
-      labelStyle: TextStyle(
-        color: selected
-            ? colorScheme.onSecondaryContainer
-            : colorScheme.onSurfaceVariant,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-    );
-  }
-}
 
 class _UserTasksBottomSheet extends StatefulWidget {
   final UsersViewData user;
@@ -409,25 +379,25 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
               child: Row(
                 children: [
                   const SizedBox(width: 16),
-                  _TaskStatusFilterChip(
+                  FilterChipComponent(
                     label: 'Todas',
-                    selected: _taskFilter == _UserTaskFilter.all,
+                    isSelected: _taskFilter == _UserTaskFilter.all,
                     onTap: () {
                       setState(() => _taskFilter = _UserTaskFilter.all);
                     },
                   ),
                   const SizedBox(width: 8),
-                  _TaskStatusFilterChip(
+                  FilterChipComponent(
                     label: 'Pendentes',
-                    selected: _taskFilter == _UserTaskFilter.pending,
+                    isSelected: _taskFilter == _UserTaskFilter.pending,
                     onTap: () {
                       setState(() => _taskFilter = _UserTaskFilter.pending);
                     },
                   ),
                   const SizedBox(width: 8),
-                  _TaskStatusFilterChip(
+                  FilterChipComponent(
                     label: 'Concluídas',
-                    selected: _taskFilter == _UserTaskFilter.completed,
+                    isSelected: _taskFilter == _UserTaskFilter.completed,
                     onTap: () {
                       setState(() => _taskFilter = _UserTaskFilter.completed);
                     },
@@ -529,36 +499,4 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
   }
 }
 
-class _TaskStatusFilterChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _TaskStatusFilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return ActionChip(
-      label: Text(label),
-      onPressed: onTap,
-      avatar: selected ? const Icon(Icons.check, size: 16) : null,
-      side: BorderSide(color: colorScheme.outlineVariant),
-      backgroundColor: selected
-          ? colorScheme.secondaryContainer
-          : Colors.transparent,
-      labelStyle: TextStyle(
-        color: selected
-            ? colorScheme.onSecondaryContainer
-            : colorScheme.onSurfaceVariant,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-    );
-  }
-}
 

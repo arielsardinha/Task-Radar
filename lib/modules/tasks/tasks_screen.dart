@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:task_radar/components/action_chip.dart';
 import 'package:task_radar/components/botton_navigator/navigation_bar_enum.dart';
 import 'package:task_radar/components/botton_navigator/task_radar_bottom_navigator.dart';
 import 'package:task_radar/domain/task.dart';
@@ -104,7 +105,7 @@ class _TasksScreenState extends State<TasksScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _FilterChip(
+                        FilterChipComponent(
                           label: 'Todas',
                           isSelected: state.filter == TaskListFilter.all,
                           onTap: () {
@@ -114,7 +115,7 @@ class _TasksScreenState extends State<TasksScreen> {
                           },
                         ),
                         const SizedBox(width: 8),
-                        _FilterChip(
+                        FilterChipComponent(
                           label: 'Pendentes',
                           isSelected: state.filter == TaskListFilter.pending,
                           onTap: () {
@@ -124,7 +125,7 @@ class _TasksScreenState extends State<TasksScreen> {
                           },
                         ),
                         const SizedBox(width: 8),
-                        _FilterChip(
+                        FilterChipComponent(
                           label: 'Concluídas',
                           isSelected: state.filter == TaskListFilter.completed,
                           onTap: () {
@@ -416,39 +417,6 @@ class _TaskItem extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return ActionChip(
-      label: Text(label),
-      onPressed: onTap,
-      avatar: isSelected ? const Icon(Icons.check, size: 16) : null,
-      side: BorderSide(color: colorScheme.outlineVariant),
-      backgroundColor: isSelected
-          ? colorScheme.secondaryContainer
-          : colorScheme.surface,
-      labelStyle: TextStyle(
-        color: isSelected
-            ? colorScheme.onSecondaryContainer
-            : colorScheme.onSurfaceVariant,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
   }
 }
