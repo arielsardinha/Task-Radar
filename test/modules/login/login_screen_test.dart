@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
+import 'dart:async';
 import 'package:task_radar/modules/login/login_screen.dart';
 import 'package:task_radar/modules/login/view_models/login_view_model.dart';
 
@@ -30,6 +31,10 @@ void main() {
 
   Finder submitButtonFinder() =>
       find.byKey(const Key('LoginScreen.ElevatedButton.submit'));
+
+  Finder loadingIndicatorFinder() => find.byKey(
+    const Key('LoginScreen.CircularProgressIndicator.authLoading'),
+  );
 
   group('LoginScreen widget tests', () {
     testWidgets(
@@ -76,7 +81,32 @@ void main() {
     );
   
     testWidgets(
-      'deve exibir feedback de sucesso quando autenticacao for concluida',
+      'deve exibir loading enquanto autenticacao estiver em andamento',
+      (tester) async {
+        final completer = Completer<void>();
+        when(
+          loginRepository.login('emilys', 'emilyspass'),
+        ).thenAnswer((_) => completer.future);
+
+        await pumpLoginScreen(tester);
+
+        await tester.enterText(usernameFieldFinder(), 'emilys');
+        await tester.enterText(passwordFieldFinder(), 'emilyspass');
+        await tester.tap(submitButtonFinder());
+        await tester.pump();
+
+        expect(loadingIndicatorFinder(), findsOneWidget);
+
+        completer.complete();
+        await tester.pumpAndSettle();
+
+        expect(loadingIndicatorFinder(), findsNothing);
+        verify(loginRepository.login('emilys', 'emilyspass')).called(1);
+      },
+    );
+
+    testWidgets(
+      'deve concluir autenticacao com sucesso sem feedback de erro',
       (tester) async {
         when(
           loginRepository.login('emilys', 'emilyspass'),
@@ -91,7 +121,8 @@ void main() {
         await tester.pumpAndSettle();
 
         verify(loginRepository.login('emilys', 'emilyspass')).called(1);
-        expect(find.byKey(const Key('LoginScreen.Text.feedbackSuccess')), findsOneWidget);
+        expect(find.byKey(const Key('LoginScreen.Text.feedbackError')), findsNothing);
+        expect(loadingIndicatorFinder(), findsNothing);
       },
     );
 

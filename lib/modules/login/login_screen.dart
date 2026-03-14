@@ -79,119 +79,146 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                  child: AutofillGroup(
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Spacer(),
-                          Text(
-                            'Task Radar',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.displaySmall?.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 28),
-                          TextFormField(
-                            key: const Key('LoginScreen.TextFormField.username'),
-                            controller: _usernameController,
-                            focusNode: _usernameFocusNode,
-                            enabled: !widget.viewModel.isLoading,
-                            textInputAction: TextInputAction.next,
-                            keyboardType: TextInputType.text,
-                            textCapitalization: TextCapitalization.none,
-                            autocorrect: false,
-                            enableSuggestions: false,
-                            autofillHints: const [AutofillHints.username],
-                            inputFormatters: [
-                              LengthLimitingTextInputFormatter(64),
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'[a-zA-Z0-9._@-]'),
-                              ),
-                            ],
-                            validator: Validatorless.multiple([
-                              Validatorless.required(
-                                'Informe o nome de usuário',
-                              ),
-                            ]),
-                            decoration: const InputDecoration(
-                              labelText: 'Usuário',
-                              hintText: 'Digite o usuário',
-                            ),
-                            onFieldSubmitted: (_) {
-                              _passwordFocusNode.requestFocus();
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            key: const Key('LoginScreen.TextFormField.password'),
-                            controller: _passwordController,
-                            focusNode: _passwordFocusNode,
-                            enabled: !widget.viewModel.isLoading,
-                            textInputAction: TextInputAction.done,
-                            keyboardType: TextInputType.visiblePassword,
-                            textCapitalization: TextCapitalization.none,
-                            autocorrect: false,
-                            enableSuggestions: false,
-                            enableIMEPersonalizedLearning: false,
-                            obscureText: widget.viewModel.obscurePassword,
-                            autofillHints: const [AutofillHints.password],
-                            inputFormatters: [
-                              LengthLimitingTextInputFormatter(128),
-                              FilteringTextInputFormatter.deny(
-                                RegExp(r'[\r\n]'),
-                              ),
-                            ],
-                            validator: Validatorless.multiple([
-                              Validatorless.required('Informe a senha'),
-                            ]),
-                            decoration: InputDecoration(
-                              labelText: 'Senha',
-                              hintText: 'Digite sua senha',
-                              suffixIcon: IconButton(
-                                onPressed: widget.viewModel.isLoading
-                                    ? null
-                                    : widget.viewModel.togglePasswordVisibility,
-                                icon: Icon(
-                                  widget.viewModel.obscurePassword
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Spacer(),
+                      Text(
+                        'Task Radar',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeInOut,
+                        height: !widget.viewModel.isLoading ? null : 0,
+                        child: AutofillGroup(
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              children: [
+                                TextFormField(
+                                  key: const Key(
+                                    'LoginScreen.TextFormField.username',
+                                  ),
+                                  controller: _usernameController,
+                                  focusNode: _usernameFocusNode,
+                                  enabled: !widget.viewModel.isLoading,
+                                  textInputAction: TextInputAction.next,
+                                  keyboardType: TextInputType.text,
+                                  textCapitalization: TextCapitalization.none,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  autofillHints: const [AutofillHints.username],
+                                  inputFormatters: [
+                                    LengthLimitingTextInputFormatter(64),
+                                    FilteringTextInputFormatter.allow(
+                                      RegExp(r'[a-zA-Z0-9._@-]'),
+                                    ),
+                                  ],
+                                  validator: Validatorless.multiple([
+                                    Validatorless.required(
+                                      'Informe o nome de usuário',
+                                    ),
+                                  ]),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Usuário',
+                                    hintText: 'Digite o usuário',
+                                  ),
+                                  onFieldSubmitted: (_) {
+                                    _passwordFocusNode.requestFocus();
+                                  },
                                 ),
-                              ),
-                            ),
-                            onFieldSubmitted: (_) => _submit(
-                              _usernameController.text,
-                              _passwordController.text,
-                            ),
-                          ),
-
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            key: const Key('LoginScreen.ElevatedButton.submit'),
-                            onPressed: widget.viewModel.isLoading
-                                ? null
-                                : () => _submit(
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  key: const Key(
+                                    'LoginScreen.TextFormField.password',
+                                  ),
+                                  controller: _passwordController,
+                                  focusNode: _passwordFocusNode,
+                                  enabled: !widget.viewModel.isLoading,
+                                  textInputAction: TextInputAction.done,
+                                  keyboardType: TextInputType.visiblePassword,
+                                  textCapitalization: TextCapitalization.none,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  enableIMEPersonalizedLearning: false,
+                                  obscureText: widget.viewModel.obscurePassword,
+                                  autofillHints: const [AutofillHints.password],
+                                  inputFormatters: [
+                                    LengthLimitingTextInputFormatter(128),
+                                    FilteringTextInputFormatter.deny(
+                                      RegExp(r'[\r\n]'),
+                                    ),
+                                  ],
+                                  validator: Validatorless.multiple([
+                                    Validatorless.required('Informe a senha'),
+                                  ]),
+                                  decoration: InputDecoration(
+                                    labelText: 'Senha',
+                                    hintText: 'Digite sua senha',
+                                    suffixIcon: IconButton(
+                                      onPressed: widget.viewModel.isLoading
+                                          ? null
+                                          : widget
+                                                .viewModel
+                                                .togglePasswordVisibility,
+                                      icon: Icon(
+                                        widget.viewModel.obscurePassword
+                                            ? Icons.visibility_outlined
+                                            : Icons.visibility_off_outlined,
+                                      ),
+                                    ),
+                                  ),
+                                  onFieldSubmitted: (_) => _submit(
                                     _usernameController.text,
                                     _passwordController.text,
                                   ),
-                            child: widget.viewModel.isLoading
-                                ? SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.2,
-                                      color: colorScheme.onPrimary,
-                                    ),
-                                  )
-                                : const Text('Entrar'),
+                                ),
+
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  key: const Key(
+                                    'LoginScreen.ElevatedButton.submit',
+                                  ),
+                                  onPressed: widget.viewModel.isLoading
+                                      ? null
+                                      : () => _submit(
+                                          _usernameController.text,
+                                          _passwordController.text,
+                                        ),
+                                  child: widget.viewModel.isLoading
+                                      ? SizedBox(
+                                          width: 22,
+                                          height: 22,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.2,
+                                            color: colorScheme.onPrimary,
+                                          ),
+                                        )
+                                      : const Text('Entrar'),
+                                ),
+                              ],
+                            ),
                           ),
-                          Spacer(),
-                        ],
+                        ),
                       ),
-                    ),
+                      Visibility(
+                        visible: widget.viewModel.isLoading,
+                        child: const Center(
+                          child: CircularProgressIndicator.adaptive(
+                            key: Key(
+                              'LoginScreen.CircularProgressIndicator.authLoading',
+                            ),
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                    ],
                   ),
                 );
               },
