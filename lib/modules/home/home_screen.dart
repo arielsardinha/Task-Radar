@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:task_radar/components/botton_navigator/navigation_bar_enum.dart';
 import 'package:task_radar/components/botton_navigator/task_radar_bottom_navigator.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
+import 'package:task_radar/modules/home/bloc/home_bloc.dart';
+import 'package:task_radar/modules/home/bloc/home_event.dart';
+import 'package:task_radar/modules/home/bloc/home_state.dart';
 import 'package:task_radar/modules/home/components/new_task_bottom_sheet.dart';
 import 'package:task_radar/modules/home/components/task_overview_card.dart';
 
@@ -13,6 +16,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.read<ProviderUser>();
     final firstName = user.user.fullName;
+    final homeBloc = context.read<HomeBloc>();
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -82,7 +86,30 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              const TaskOverviewCard(total: 12, completed: 8, pending: 4),
+              BlocBuilder<HomeBloc, HomeState>(
+                bloc: homeBloc,
+                builder: (context, state) {
+                  return switch (state) {
+                    HomeStateLoading() || HomeStateInitial() => const Center(
+                      child: CircularProgressIndicator.adaptive(),
+                    ),
+                    HomeStateFailure(:final message) => Center(
+                      child: Text(message),
+                    ),
+                    HomeStateOverviewLoaded(
+                      :final total,
+                      :final completed,
+                      :final pending,
+                    ) =>
+                      TaskOverviewCard(
+                        total: total,
+                        completed: completed,
+                        pending: pending,
+                      ),
+                    HomeState() => const SizedBox.shrink(),
+                  };
+                },
+              ),
               const Spacer(),
             ],
           ),
@@ -93,7 +120,4 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-
-
-
 }

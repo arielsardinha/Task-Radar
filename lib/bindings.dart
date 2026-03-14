@@ -48,16 +48,16 @@ sealed class Bindings {
       ),
     );
 
-    instance.registerLazySingletonAsync<Database>(
+    instance.registerSingletonAsync<Database>(
       () async => await openDatabase('task_radar.db', version: 1),
     );
 
-    instance.registerLazySingletonAsync<TaskRepositoryImpl>(() async {
+    instance.registerSingletonAsync<TaskRepositoryImpl>(() async {
       final database = await instance.getAsync<Database>();
       final repository = TaskRepositoryImpl(database: database);
       await repository.ensureSchema();
       return repository;
-    });
+    }, dependsOn: [Database]);
 
     instance.get<dio.Dio>().interceptors.add(
       AuthInterceptor(
