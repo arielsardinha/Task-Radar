@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/modules/login/bloc/login_bloc.dart';
 import 'package:task_radar/modules/login/bloc/login_event.dart';
 import 'package:task_radar/modules/login/bloc/login_state.dart';
+import 'package:task_radar/routes/routes.dart';
 import 'package:validatorless/validatorless.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -60,6 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
             if (state is LoginStateSuccess) {
               context.read<ProviderUser>().user = state.user;
               TextInput.finishAutofillContext(shouldSave: true);
+              GoRouter.maybeOf(context)?.go(Routes.home);
             }
 
             if (state is LoginStateFailure) {
@@ -175,8 +178,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       onPressed: isLoading
                                           ? null
                                           : () => context.read<LoginBloc>().add(
-                                                LoginEventTogglePasswordVisibility(),
-                                              ),
+                                              LoginEventTogglePasswordVisibility(),
+                                            ),
                                       icon: Icon(
                                         state.obscurePassword
                                             ? Icons.visibility_outlined

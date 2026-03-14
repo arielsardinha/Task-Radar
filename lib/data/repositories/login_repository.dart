@@ -32,6 +32,7 @@ final class LoginRepositoryImpl implements LoginRepository {
         RequestAdapter(
           path: "/auth/login",
           data: {"username": name, "password": password},
+          headers: {'Content-Type': 'application/json'},
         ),
       );
 
@@ -44,10 +45,7 @@ final class LoginRepositoryImpl implements LoginRepository {
           ).toJson(),
         );
         final meModel = MeModel.fromJson(response.data);
-        await _storage.setItem(
-          StorageSecureEnum.auth_user,
-          meModel.toJson(),
-        );
+        await _storage.setItem(StorageSecureEnum.auth_user, meModel.toJson());
         return meModel.toUser();
       } else {
         throw Exception("falha ao realizar login: ${response.statusCode}");

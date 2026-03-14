@@ -1,12 +1,11 @@
 import 'package:go_router/go_router.dart';
+import 'package:task_radar/routes/modules/home/home_router.dart';
 import 'package:task_radar/routes/modules/login/login_router.dart';
 import 'package:task_radar/routes/routes.dart';
 
 sealed class AppRoutes {
   static final GoRouter router = GoRouter(
     initialLocation: Routes.login,
-    routes: [
-      ...LoginRouter.routes,
-    ],
+    routes: [...HomeRouter.routes, ...LoginRouter.routes],
   );
 }

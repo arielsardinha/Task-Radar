@@ -93,12 +93,10 @@ final class HttpServiceAdapterImp implements HttpServiceAdapter {
         statusMessage: response.statusMessage,
       );
     } on dio.DioException catch (dioError, s) {
-      final requestIsformData =
-          dioError.requestOptions.contentType == "multipart/form-data";
       throw HttpError(
         request: RequestAdapter(
           path: dioError.requestOptions.path,
-          data: requestIsformData ? null : dioError.requestOptions.data,
+          data: dioError.requestOptions.data,
           headers: dioError.requestOptions.headers,
           queryParams: dioError.requestOptions.queryParameters,
         ),
