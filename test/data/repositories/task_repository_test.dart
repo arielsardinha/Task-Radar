@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:sqflite/sqflite.dart' show Transaction;
 import 'package:task_radar/data/repositories/task_repository_impl.dart';
+import 'package:task_radar/data/services/task_page_sync_service/datasources/task_local_datasource.dart';
+import 'package:task_radar/data/services/task_page_sync_service/task_page_sync_service.dart';
 import 'package:task_radar/domain/task.dart';
 
 import '../../mocks.mocks.dart';
@@ -16,7 +18,16 @@ void main() {
     database = MockDatabase();
     transaction = MockTransaction();
     client = MockHttpServiceAdapter();
-    sut = TaskRepositoryImpl(database: database, client: client);
+    final taskPageSyncService = TaskPageSyncService(
+      local: TaskLocalDataSource(database),
+      remote: TaskRemoteDataSource(client),
+      pageSize: 30,
+    );
+    sut = TaskRepositoryImpl(
+      database: database,
+      client: client,
+      taskPageSyncService: taskPageSyncService,
+    );
   });
 
   group('TaskRepositoryImpl.ensureSchema', () {
