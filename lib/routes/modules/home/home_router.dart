@@ -76,7 +76,7 @@ sealed class HomeRouter {
           key: state.pageKey,
           child: Provider<UsersBloc>(
             create: (_) => UsersBloc(
-              userRepository: GetIt.instance.get<UserRepository>(),
+              userRepository: GetIt.instance.get<UserRepositoryImpl>(),
             ),
             child: UsersScreen(
               taskRepository: GetIt.instance.get<TaskRepositoryImpl>(),

@@ -50,6 +50,7 @@ class _UsersScreenState extends State<UsersScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       showDragHandle: true,
       builder: (_) => _UserTasksBottomSheet(
         user: user,
@@ -337,8 +338,11 @@ class _UserTasksBottomSheet extends StatefulWidget {
   State<_UserTasksBottomSheet> createState() => _UserTasksBottomSheetState();
 }
 
+enum _UserTaskFilter { all, pending, completed }
+
 class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
   late final Future<List<Task>> _tasksFuture;
+  _UserTaskFilter _taskFilter = _UserTaskFilter.all;
 
   @override
   void initState() {
@@ -347,6 +351,10 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
   }
 
   Future<List<Task>> _loadUserTasks() async {
+    if (widget.user.id == null) {
+      return const [];
+    }
+
     return widget.taskRepository.getAllByUser(userId: widget.user.id!);
   }
 
@@ -356,9 +364,9 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
     final textTheme = Theme.of(context).textTheme;
 
     return SafeArea(
-      top: false,
+      top: true,
       child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.82,
+        height: MediaQuery.sizeOf(context).height,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -395,6 +403,39 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
                 ),
               ),
             ),
+            const SizedBox(height: 12),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  const SizedBox(width: 16),
+                  _TaskStatusFilterChip(
+                    label: 'Todas',
+                    selected: _taskFilter == _UserTaskFilter.all,
+                    onTap: () {
+                      setState(() => _taskFilter = _UserTaskFilter.all);
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  _TaskStatusFilterChip(
+                    label: 'Pendentes',
+                    selected: _taskFilter == _UserTaskFilter.pending,
+                    onTap: () {
+                      setState(() => _taskFilter = _UserTaskFilter.pending);
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  _TaskStatusFilterChip(
+                    label: 'Concluídas',
+                    selected: _taskFilter == _UserTaskFilter.completed,
+                    onTap: () {
+                      setState(() => _taskFilter = _UserTaskFilter.completed);
+                    },
+                  ),
+                  const SizedBox(width: 16),
+                ],
+              ),
+            ),
             const SizedBox(height: 8),
             Expanded(
               child: FutureBuilder<List<Task>>(
@@ -423,7 +464,17 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
                     growable: false,
                   );
 
-                  if (tasks.isEmpty) {
+                  final filteredTasks = tasks.where((task) {
+                    return switch (_taskFilter) {
+                      _UserTaskFilter.all => true,
+                      _UserTaskFilter.pending =>
+                        task.status == TaskStatus.pending,
+                      _UserTaskFilter.completed =>
+                        task.status == TaskStatus.completed,
+                    };
+                  }).toList(growable: false);
+
+                  if (filteredTasks.isEmpty) {
                     return Center(
                       child: Text(
                         'Nenhuma tarefa encontrada.',
@@ -436,11 +487,11 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
 
                   return ListView.separated(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                    itemCount: tasks.length,
+                    itemCount: filteredTasks.length,
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 8),
                     itemBuilder: (context, index) {
-                      final task = tasks[index];
+                      final task = filteredTasks[index];
                       final isCompleted = task.status == TaskStatus.completed;
                       return Container(
                         decoration: BoxDecoration(
@@ -474,6 +525,39 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TaskStatusFilterChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TaskStatusFilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ActionChip(
+      label: Text(label),
+      onPressed: onTap,
+      avatar: selected ? const Icon(Icons.check, size: 16) : null,
+      side: BorderSide(color: colorScheme.outlineVariant),
+      backgroundColor: selected
+          ? colorScheme.secondaryContainer
+          : Colors.transparent,
+      labelStyle: TextStyle(
+        color: selected
+            ? colorScheme.onSecondaryContainer
+            : colorScheme.onSurfaceVariant,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
   }
 }
