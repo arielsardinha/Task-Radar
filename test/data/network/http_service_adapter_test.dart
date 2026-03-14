@@ -175,7 +175,7 @@ void main() {
 			);
 		});
 
-		test('post deve lançar HttpError com request.data null quando for multipart', () async {
+		test('post deve lançar HttpError e manter request.data quando for multipart', () async {
 			final request = const RequestAdapter(path: '/upload', data: {'file': 'bin'});
 			final requestOptions = dio.RequestOptions(
 				path: '/upload',
@@ -206,7 +206,7 @@ void main() {
 				throwsA(
 					isA<HttpError>()
 							.having((e) => e.response.statusCode, 'statusCode', 400)
-							.having((e) => e.request?.data, 'request.data', isNull),
+							.having((e) => e.request?.data, 'request.data', {'file': 'bin'}),
 				),
 			);
 		});

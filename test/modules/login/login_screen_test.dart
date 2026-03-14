@@ -23,7 +23,7 @@ const dummyUser = User(
 );
 
 void main() {
-  late MockLoginRepository loginRepository;
+  late MockAuthRepository authRepository;
   late LoginBloc loginBloc;
 
   setUpAll(() {
@@ -31,8 +31,8 @@ void main() {
   });
 
   setUp(() {
-    loginRepository = MockLoginRepository();
-    loginBloc = LoginBloc(loginRepository: loginRepository);
+    authRepository = MockAuthRepository();
+    loginBloc = LoginBloc(authRepository: authRepository);
   });
 
   tearDown(() async {
@@ -85,7 +85,7 @@ void main() {
 
         expect(find.text('Informe o nome de usuário'), findsOneWidget);
         expect(find.text('Informe a senha'), findsOneWidget);
-        verifyNever(loginRepository.login(any, any));
+        verifyNever(authRepository.login(any, any));
       },
     );
 
@@ -99,7 +99,7 @@ void main() {
         await settleBlocAsyncChain(tester);
         expect(find.text('Informe o nome de usuário'), findsNothing);
         expect(find.text('Informe a senha'), findsOneWidget);
-        verifyNever(loginRepository.login(any, any));
+        verifyNever(authRepository.login(any, any));
       },
     );
 
@@ -114,7 +114,7 @@ void main() {
 
         expect(find.text('Informe o nome de usuário'), findsOneWidget);
         expect(find.text('Informe a senha'), findsNothing);
-        verifyNever(loginRepository.login(any, any));
+        verifyNever(authRepository.login(any, any));
       },
     );
 
@@ -123,7 +123,7 @@ void main() {
       (tester) async {
         final completer = Completer<User>();
         when(
-          loginRepository.login('emilys', 'emilyspass'),
+          authRepository.login('emilys', 'emilyspass'),
         ).thenAnswer((_) => completer.future);
 
         await pumpLoginScreen(tester);
@@ -140,7 +140,7 @@ void main() {
 
         expect(loginBloc.state, isA<LoginStateSuccess>());
         expect(loadingIndicatorFinder(), findsNothing);
-        verify(loginRepository.login('emilys', 'emilyspass')).called(1);
+        verify(authRepository.login('emilys', 'emilyspass')).called(1);
       },
     );
 
@@ -148,7 +148,7 @@ void main() {
       tester,
     ) async {
       when(
-        loginRepository.login('emilys', 'emilyspass'),
+        authRepository.login('emilys', 'emilyspass'),
       ).thenAnswer((_) async => dummyUser);
 
       await pumpLoginScreen(tester);
@@ -159,7 +159,7 @@ void main() {
       await tester.pump();
       await settleBlocAsyncChain(tester);
 
-      verify(loginRepository.login('emilys', 'emilyspass')).called(1);
+      verify(authRepository.login('emilys', 'emilyspass')).called(1);
       expect(
         find.byKey(const Key('LoginScreen.Text.feedbackError')),
         findsNothing,
@@ -171,7 +171,7 @@ void main() {
       'deve exibir feedback de erro e limpar senha quando autenticacao falhar',
       (tester) async {
         when(
-          loginRepository.login('emilys', 'emilyspass'),
+          authRepository.login('emilys', 'emilyspass'),
         ).thenThrow(Exception('erro de autenticacao'));
 
         await pumpLoginScreen(tester);
@@ -182,7 +182,7 @@ void main() {
         await tester.pump();
         await settleBlocAsyncChain(tester);
 
-        verify(loginRepository.login('emilys', 'emilyspass')).called(1);
+        verify(authRepository.login('emilys', 'emilyspass')).called(1);
         expect(
           find.byKey(const Key('LoginScreen.Text.feedbackError')),
           findsOneWidget,

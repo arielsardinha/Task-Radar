@@ -1,17 +1,19 @@
 import 'package:bloc/bloc.dart';
-import 'package:task_radar/data/repositories/login_repository.dart';
+import 'package:task_radar/data/repositories/auth_repository.dart';
 import 'package:task_radar/modules/login/bloc/login_event.dart';
 import 'package:task_radar/modules/login/bloc/login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  LoginBloc({required LoginRepository loginRepository})
-      : _loginRepository = loginRepository,
-        super(const LoginStateInitial(obscurePassword: true)) {
+  LoginBloc({
+    AuthRepository? authRepository,
+    @Deprecated('Use authRepository instead.') AuthRepository? loginRepository,
+  }) : _authRepository = authRepository ?? loginRepository!,
+       super(const LoginStateInitial(obscurePassword: true)) {
     on<LoginEventTogglePasswordVisibility>(_onTogglePasswordVisibility);
     on<LoginEventSubmit>(_onSubmit);
   }
 
-  final LoginRepository _loginRepository;
+  final AuthRepository _authRepository;
 
   Future<void> _onTogglePasswordVisibility(
     LoginEventTogglePasswordVisibility event,
@@ -32,8 +34,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(LoginStateLoading(obscurePassword: state.obscurePassword));
 
     try {
-      final user = await _loginRepository.login(event.username, event.password);
-      emit(LoginStateSuccess(user: user, obscurePassword: state.obscurePassword));
+      final user = await _authRepository.login(event.username, event.password);
+      emit(
+        LoginStateSuccess(user: user, obscurePassword: state.obscurePassword),
+      );
     } catch (_) {
       emit(
         LoginStateFailure(

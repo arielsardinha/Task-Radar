@@ -2,7 +2,7 @@ import 'package:get_it/get_it.dart' show GetIt;
 import 'package:dio/dio.dart' as dio;
 import 'package:task_radar/data/interceptors/auth_interceptor.dart';
 import 'package:task_radar/data/network/http_service_adapter.dart';
-import 'package:task_radar/data/repositories/login_repository.dart';
+import 'package:task_radar/data/repositories/auth_repository.dart';
 import 'package:task_radar/data/storage/storage_impl.dart';
 import 'package:dio/io.dart' show IOHttpClientAdapter;
 import 'package:flutter/foundation.dart' show kDebugMode;
@@ -33,15 +33,16 @@ sealed class Bindings {
         return client;
       },
     );
-
-    instance.registerLazySingleton(() => StorageImpl());
+    instance.registerLazySingleton<StorageImpl>(
+      () => const StorageImpl(),
+    );
 
     instance.registerLazySingleton(
       () => HttpServiceAdapterImp(client: instance.get<dio.Dio>()),
     );
 
-    instance.registerLazySingleton<LoginRepository>(
-      () => LoginRepositoryImpl(
+    instance.registerLazySingleton<AuthRepositoryImpl>(
+      () => AuthRepositoryImpl(
         instance.get<HttpServiceAdapterImp>(),
         instance.get<StorageImpl>(),
       ),

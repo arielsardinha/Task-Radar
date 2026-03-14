@@ -18,7 +18,7 @@ const dummyUser = User(
 );
 
 void main() {
-  late MockLoginRepository loginRepository;
+  late MockAuthRepository authRepository;
   late LoginBloc loginBloc;
 
   setUpAll(() {
@@ -26,8 +26,8 @@ void main() {
   });
 
   setUp(() {
-    loginRepository = MockLoginRepository();
-    loginBloc = LoginBloc(loginRepository: loginRepository);
+    authRepository = MockAuthRepository();
+    loginBloc = LoginBloc(authRepository: authRepository);
   });
 
   tearDown(() async {
@@ -35,35 +35,33 @@ void main() {
   });
 
   test('deve emitir Loading e Success ao autenticar com sucesso', () async {
-    when(loginRepository.login('emilys', 'emilyspass')).thenAnswer((_) async => dummyUser);
+    when(
+      authRepository.login('emilys', 'emilyspass'),
+    ).thenAnswer((_) async => dummyUser);
 
     loginBloc.add(LoginEventSubmit(username: 'emilys', password: 'emilyspass'));
 
     await expectLater(
       loginBloc.stream,
-      emitsInOrder([
-        isA<LoginStateLoading>(),
-        isA<LoginStateSuccess>(),
-      ]),
+      emitsInOrder([isA<LoginStateLoading>(), isA<LoginStateSuccess>()]),
     );
 
-    verify(loginRepository.login('emilys', 'emilyspass')).called(1);
+    verify(authRepository.login('emilys', 'emilyspass')).called(1);
   });
 
   test('deve emitir Loading e Failure ao falhar autenticacao', () async {
-    when(loginRepository.login('emilys', 'emilyspass')).thenThrow(Exception('erro'));
+    when(
+      authRepository.login('emilys', 'emilyspass'),
+    ).thenThrow(Exception('erro'));
 
     loginBloc.add(LoginEventSubmit(username: 'emilys', password: 'emilyspass'));
 
     await expectLater(
       loginBloc.stream,
-      emitsInOrder([
-        isA<LoginStateLoading>(),
-        isA<LoginStateFailure>(),
-      ]),
+      emitsInOrder([isA<LoginStateLoading>(), isA<LoginStateFailure>()]),
     );
 
-    verify(loginRepository.login('emilys', 'emilyspass')).called(1);
+    verify(authRepository.login('emilys', 'emilyspass')).called(1);
   });
 
   test('deve alternar obscurePassword com evento de visibilidade', () async {

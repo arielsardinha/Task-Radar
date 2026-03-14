@@ -2,9 +2,23 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:task_radar/data/repositories/auth_repository.dart';
+import 'package:task_radar/data/storage/storage.dart';
+import 'package:task_radar/data/storage/storage_secure_enum.dart';
+import 'package:task_radar/global/providers/provider_user.dart';
+import 'package:task_radar/routes/routes.dart';
 
 class SplashAnimationScreen extends StatefulWidget {
-  const SplashAnimationScreen({super.key});
+  final AuthRepository authRepository;
+  final Storage storage;
+
+  const SplashAnimationScreen({
+    super.key,
+    required this.authRepository,
+    required this.storage,
+  });
 
   /// Duração de espera antes de iniciar a animação da splash
   static final Duration _splashWaitBeforeDuration = Duration(
@@ -31,6 +45,7 @@ class _SplashAnimationScreenState extends State<SplashAnimationScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _progress;
+  bool _didNavigate = false;
 
   @override
   void initState() {
@@ -43,6 +58,35 @@ class _SplashAnimationScreenState extends State<SplashAnimationScreen>
       parent: _controller,
       curve: Curves.easeInOutCubic,
     );
+    _bootstrapSession();
+  }
+
+  Future<void> _bootstrapSession() async {
+    final delayFuture = Future<void>.delayed(
+      SplashAnimationScreen.totalSplashDuration,
+    );
+
+    final hasAuthInStorage =
+        await widget.storage.getItem(StorageSecureEnum.auth_jwt) != null;
+
+    final user = hasAuthInStorage
+        ? await widget.authRepository.refreshSession()
+        : null;
+
+    await delayFuture;
+    if (!mounted || _didNavigate) {
+      return;
+    }
+
+    if (user != null) {
+      context.read<ProviderUser>().user = user;
+      _didNavigate = true;
+      GoRouter.of(context).go(Routes.home);
+      return;
+    }
+
+    _didNavigate = true;
+    GoRouter.of(context).go(Routes.login);
   }
 
   @override

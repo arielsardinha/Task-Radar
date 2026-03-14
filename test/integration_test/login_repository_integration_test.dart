@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:task_radar/data/network/http_service_adapter.dart';
-import 'package:task_radar/data/repositories/login_repository.dart';
+import 'package:task_radar/data/repositories/auth_repository.dart';
 import 'package:task_radar/data/storage/storage_impl.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
 
@@ -14,9 +14,9 @@ void main() {
   const loginUsername = String.fromEnvironment('LOGIN_USERNAME');
   const loginPassword = String.fromEnvironment('LOGIN_PASSWORD');
 
-  group('LoginRepository Integration', () {
+  group('AuthRepository Integration', () {
     late StorageImpl storage;
-    late LoginRepositoryImpl sut;
+    late AuthRepositoryImpl sut;
 
     setUpAll(() {
       FlutterSecureStorage.setMockInitialValues({});
@@ -41,7 +41,7 @@ void main() {
     setUp(() async {
       storage = const StorageImpl();
       await storage.removeAll();
-      sut = LoginRepositoryImpl(
+      sut = AuthRepositoryImpl(
         HttpServiceAdapterImp(
           client: Dio(
             BaseOptions(
