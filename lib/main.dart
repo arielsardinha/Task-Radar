@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:task_radar/modules/splash/animation_splash.dart';
+import 'package:task_radar/theme/app_theme.dart';
 
 
 void main() {
@@ -14,9 +15,9 @@ class SplashApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Task Radar',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4)),
-      ),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       home: const SplashAnimationScreen(),
     );
   }
