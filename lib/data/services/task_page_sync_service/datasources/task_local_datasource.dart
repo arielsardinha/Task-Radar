@@ -45,7 +45,7 @@ final class TaskLocalDataSource {
     final rows = await _db.query(
       'sync_state',
       where: 'resource = ?',
-      whereArgs: [_resourceKey(userId)],
+      whereArgs: [userId],
       limit: 1,
     );
 
@@ -72,7 +72,7 @@ final class TaskLocalDataSource {
     required bool exhausted,
   }) {
     return _db.insert('sync_state', {
-      'resource': _resourceKey(userId),
+      'resource': userId,
       'next_skip': nextSkip,
       'remote_total': remoteTotal,
       'exhausted': exhausted ? 1 : 0,
@@ -150,5 +150,5 @@ final class TaskLocalDataSource {
     );
   }
 
-  String _resourceKey(int userId) => 'todos:user:$userId';
+
 }

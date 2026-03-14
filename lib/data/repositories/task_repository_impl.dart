@@ -31,7 +31,7 @@ final class TaskRepositoryImpl implements TaskRepository {
   /// - `updated_at`: ultimo instante de alteracao em epoch millis.
   ///
   /// Tabela `sync_state`:
-  /// - `resource`: chave do recurso sincronizado (ex.: `todos:user:<id>`).
+  /// - `resource`: chave do recurso sincronizado (ex.: `<id>`).
   /// - `next_skip`: deslocamento da proxima pagina remota a buscar.
   /// - `remote_total`: total remoto conhecido para calcular exaustao.
   /// - `exhausted`: indica se todas as paginas remotas ja foram lidas.
