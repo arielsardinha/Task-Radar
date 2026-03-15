@@ -1,9 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:sqflite/sqflite.dart' show Transaction;
+import 'package:task_radar/data/adapter/response_adapter.dart';
 import 'package:task_radar/data/repositories/task_repository_impl.dart';
-import 'package:task_radar/data/services/task_page_sync_service/datasources/task_local_datasource.dart';
-import 'package:task_radar/data/services/task_page_sync_service/task_page_sync_service.dart';
 import 'package:task_radar/domain/task.dart';
 
 import '../../mocks.mocks.dart';
@@ -14,19 +13,23 @@ void main() {
   late MockHttpServiceAdapter client;
   late TaskRepositoryImpl sut;
 
+  setUpAll(() {
+    provideDummy<ResponseAdapter<dynamic>>(
+      const ResponseAdapter<dynamic>(
+        data: <String, dynamic>{},
+        statusCode: 200,
+      ),
+    );
+  });
+
   setUp(() {
     database = MockDatabase();
     transaction = MockTransaction();
     client = MockHttpServiceAdapter();
-    final taskPageSyncService = TaskPageSyncService(
-      local: TaskLocalDataSource(database),
-      remote: TaskRemoteDataSource(client),
-      pageSize: 30,
-    );
+    when(client.get<dynamic>(any)).thenThrow(Exception('api indisponivel'));
     sut = TaskRepositoryImpl(
       database: database,
       client: client,
-      taskPageSyncService: taskPageSyncService,
     );
   });
 
@@ -336,7 +339,19 @@ void main() {
   });
 
   group('TaskRepositoryImpl.countByStatus', () {
-    test('deve retornar contagens do SQLite', () async {
+    test('deve somar contagens da API com SQLite', () async {
+      when(client.get<dynamic>(any)).thenAnswer(
+        (_) async => const ResponseAdapter<dynamic>(
+          statusCode: 200,
+          data: {
+            'todos': [
+              {'id': 1, 'todo': 'API pending', 'completed': false, 'userId': 99},
+              {'id': 2, 'todo': 'API completed', 'completed': true, 'userId': 99},
+            ],
+          },
+        ),
+      );
+
       when(database.rawQuery(any, any)).thenAnswer(
         (_) async => [
           {'pending_count': 3, 'completed_count': 5},
@@ -354,8 +369,8 @@ void main() {
       );
       expect(queryCall[1], [99]);
 
-      expect(result.pending, 3);
-      expect(result.completed, 5);
+      expect(result.pending, 4);
+      expect(result.completed, 6);
     });
 
     test('deve retornar zero quando query nao tiver linhas', () async {
@@ -367,7 +382,19 @@ void main() {
       expect(result.completed, 0);
     });
 
-    test('deve retornar zero quando colunas vierem nulas', () async {
+    test('deve considerar API quando colunas do SQLite vierem nulas', () async {
+      when(client.get<dynamic>(any)).thenAnswer(
+        (_) async => const ResponseAdapter<dynamic>(
+          statusCode: 200,
+          data: {
+            'todos': [
+              {'id': 10, 'todo': 'A', 'completed': false, 'userId': 1},
+              {'id': 11, 'todo': 'B', 'completed': false, 'userId': 1},
+            ],
+          },
+        ),
+      );
+
       when(database.rawQuery(any, any)).thenAnswer(
         (_) async => [
           {'pending_count': null, 'completed_count': null},
@@ -376,7 +403,7 @@ void main() {
 
       final result = await sut.countByStatus(userId: 1);
 
-      expect(result.pending, 0);
+      expect(result.pending, 2);
       expect(result.completed, 0);
     });
   });
