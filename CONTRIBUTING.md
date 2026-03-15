@@ -2,6 +2,31 @@
 
 Este documento detalha as decisões de engenharia, os padrões de projeto aplicados e os princípios de SOLID que sustentam o Task Radar. O foco do desenvolvimento foi construir um sistema altamente desacoplado, testável e preparado para crescimento escalável.
 
+## Execução do Projeto
+
+Siga os comandos abaixo para configurar e executar o ambiente localmente:
+
+Setup Inicial
+Instalar Dependências: flutter pub get
+Gerar Código (DI e Mocks):
+```bash
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+Execução do App
+Rodar com variáveis de ambiente: 
+```bash 
+flutter run --dart-define-from-file=env.json 
+```
+
+Execução de Testes
+Validar regras e mapeamentos: 
+```bash
+flutter test -x integration
+
+flutter test --coverage --dart-define-from-file=env.json --dart-define=LOGIN_USERNAME=emilys --dart-define=LOGIN_PASSWORD=emilyspass
+```
+
 ## Arquitetura e Motivação
 
 Este projeto segue o guia oficial de arquitetura Flutter com adaptação para o padrão MVVM, utilizando o BLoC como ViewModel, conforme os requisitos do desafio.
@@ -51,39 +76,43 @@ A aplicação de padrões de design foi fundamental para garantir que o código 
 
 O sistema foi desenvolvido respeitando os princípios SOLID para garantir escalabilidade e desacoplamento:
 
-## Roadmap de Melhorias
+## Roadmap de Melhorias e Evolução Técnica
 
-Para um ambiente de produção escalável, os seguintes pontos foram mapeados:
+Considerando o escopo deste desafio técnico, algumas implementações de nível enterprise foram mapeadas para serem executadas em uma oportunidade com maior disponibilidade de tempo. Estas melhorias visam elevar o patamar de segurança, manutenibilidade e observabilidade da plataforma.
 
-- Observabilidade: Integração com Firebase Crashlytics para monitoramento de falhas e logs em tempo real.
+#### Segurança Avançada (Conformidade OWASP MASVS)
 
-- CI/CD: Implementação de automação via Fastlane para padronizar o deploy e submissão para as lojas.
+Para garantir a integridade dos dados e a proteção contra ameaças externas, o roadmap inclui:
 
-- Qualidade: Integração com SonarQube para análise estática de código e monitoramento de débitos técnicos.
+- Proteção contra Engenharia Reversa: Implementação de ofuscação de código (R8/ProGuard) e técnicas de Anti-Tampering para dificultar a descompilação.
+FreeRasp (https://pub.dev/packages/freerasp)
 
-- Segurança: Implementação de SSL Pinning em cenários de API restrita para mitigar ataques de Man-in-the-Middle.
+- Detecção de Root e Jailbreak: Adição de camadas de verificação para impedir a execução do app em dispositivos comprometidos.
+Firebase APP Check (https://firebase.google.com/docs/app-check?hl=pt-br)
+safe_device (https://gemini.google.com/app/5c5039e221210e5b?hl=pt-BR)
 
-## Execução do Projeto
+- Firebase App Check: Proteção dos recursos de backend garantindo que apenas instâncias legítimas do aplicativo acessem a API.
 
-Siga os comandos abaixo para configurar e executar o ambiente localmente:
+- Autenticação Biométrica: Integração com Local Authentication (digital/FaceID) para reforçar a segurança do acesso local. Uma opção é o uso da biblioteca: 
+local_auth (https://pub.dev/packages/local_auth)
 
-Setup Inicial
-Instalar Dependências: flutter pub get
-Gerar Código (DI e Mocks):
-```bash
-flutter pub run build_runner build --delete-conflicting-outputs
-```
 
-Execução do App
-Rodar com variáveis de ambiente: 
-```bash 
-flutter run --dart-define-from-file=env.json 
-```
+- SSL Pinning: Embora não aplicável em APIs públicas abertas, em um ambiente restrito seria implementada a validação de certificados para mitigar ataques de Man-in-the-Middle (MitM). Uma sugestão é o uso do http_certificate_pinning (https://pub.dev/packages/http_certificate_pinning)
 
-Execução de Testes
-Validar regras e mapeamentos: 
-```bash
-flutter test -x integration
+#### Refinamentos Arquiteturais
 
-flutter test --coverage --dart-define-from-file=env.json --dart-define=LOGIN_USERNAME=emilys --dart-define=LOGIN_PASSWORD=emilyspass
-```
+Para reduzir ainda mais a complexidade e aumentar o desacoplamento:
+
+- Gateway Pattern: Migração da lógica de comunicação direta com APIs externas para Gateways especializados. Isso isola completamente a infraestrutura de rede, permitindo que os Repositories lidem apenas com modelos de domínio e regras de negócio puras.
+
+- Desacoplamento do AuthInterceptor: Refatoração para que o interceptor dependa de uma abstração de gerenciamento de tokens, removendo qualquer acoplamento direto com repositórios de autenticação.
+
+- Microsoft Clarity: Integração para análise de comportamento do usuário através de mapas de calor e gravações de sessão, permitindo melhorias contínuas baseadas em dados reais de uso.
+
+- Firebase Crashlytics: Monitoramento avançado de falhas, com logs customizados e rastreio de estados que precedem um crash.
+
+- Elevação da Cobertura: Expansão da suíte de testes para atingir >90% de cobertura..
+
+- SonarQube: Integração no pipeline para análise estática contínua, detecção de code smells, vulnerabilidades e monitoramento rigoroso de débitos técnicos.
+
+- CI/CD com Fastlane: Automação completa do ciclo de vida, desde a execução de testes e linting até o deploy automatizado para ambientes de staging e lojas (TestFlight/Play Store).
