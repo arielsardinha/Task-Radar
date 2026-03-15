@@ -108,7 +108,10 @@ void main() {
       await pumpHomeScreen(tester);
       await tester.runAsync(() async {});
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('Concluídas: 8'), findsOneWidget);
+      expect(find.text('Pendentes: 4'), findsOneWidget);
+      expect(find.text('12'), findsOneWidget);
 
       loadingCompleter.complete(meModel);
     });

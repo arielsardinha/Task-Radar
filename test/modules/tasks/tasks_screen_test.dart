@@ -332,7 +332,10 @@ void main() {
 
       await pumpScreenWithoutWaiting(tester);
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('Nome da tarefa'), findsAtLeastNWidgets(1));
+      expect(find.text('Pendentes'), findsAtLeastNWidgets(1));
+      expect(find.text('Concluídas'), findsAtLeastNWidgets(1));
 
       completer.complete(List<Task>.from(taskStore));
       await pumpFrames(tester, 6);

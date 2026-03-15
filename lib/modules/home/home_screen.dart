@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:task_radar/components/botton_navigator/navigation_bar_enum.dart';
 import 'package:task_radar/components/botton_navigator/task_radar_bottom_navigator.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
@@ -108,8 +109,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 bloc: _homeBloc,
                 builder: (context, state) {
                   return switch (state) {
-                    HomeStateLoading() || HomeStateInitial() => const Center(
-                      child: CircularProgressIndicator.adaptive(),
+                    HomeStateLoading() ||
+                    HomeStateInitial() => const Skeletonizer(
+                      enabled: true,
+                      child: TaskOverviewCard(
+                        total: 12,
+                        completed: 8,
+                        pending: 4,
+                      ),
                     ),
                     HomeStateFailure(:final message) => Center(
                       child: Text(message),

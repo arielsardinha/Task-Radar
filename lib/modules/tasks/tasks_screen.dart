@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:task_radar/components/action_chip.dart';
 import 'package:task_radar/components/botton_navigator/navigation_bar_enum.dart';
 import 'package:task_radar/components/botton_navigator/task_radar_bottom_navigator.dart';
@@ -24,6 +25,23 @@ class TasksScreen extends StatefulWidget {
 class _TasksScreenState extends State<TasksScreen> {
   late final TasksBloc _tasksBloc;
   Timer? _searchDebounce;
+
+  List<Task> _buildSkeletonTasks({required TaskStatus status}) {
+    final now = DateTime(2026, 1, 1);
+    return List.generate(
+      3,
+      (index) => Task(
+        localId: 'skeleton-$status-$index',
+        remoteId: null,
+        userId: 'skeleton-user',
+        name: 'Nome da tarefa',
+        description: 'Descricao da tarefa',
+        status: status,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -244,8 +262,21 @@ class _TasksScreenState extends State<TasksScreen> {
                   Expanded(
                     child: switch (state.status) {
                       TasksStateStatus.loading ||
-                      TasksStateStatus.initial => const Center(
-                        child: CircularProgressIndicator.adaptive(),
+                      TasksStateStatus.initial => Skeletonizer(
+                        enabled: true,
+                        child: _TasksContent(
+                          pendingTasks: _buildSkeletonTasks(
+                            status: TaskStatus.pending,
+                          ),
+                          completedTasks: _buildSkeletonTasks(
+                            status: TaskStatus.completed,
+                          ),
+                          isLoadingMore: false,
+                          hasReachedEnd: false,
+                          onRefreshPagination: () async {},
+                          onTapTask: (_) {},
+                          onToggle: (_) {},
+                        ),
                       ),
                       TasksStateStatus.failure => Center(
                         child: Text(
