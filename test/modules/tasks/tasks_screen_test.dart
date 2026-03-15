@@ -384,7 +384,7 @@ void main() {
 
       final fields = find.descendant(
         of: find.byType(BottomSheet),
-        matching: find.byType(TextField),
+        matching: find.byType(TextFormField),
       );
 
       await tester.enterText(fields.at(0), 'Alpha editada');
@@ -421,6 +421,5 @@ void main() {
       expect((listTile.title as Text).data, 'Sem descricao');
       expect(listTile.subtitle, isNull);
     });
-
   });
 }

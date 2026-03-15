@@ -63,7 +63,7 @@ void main() {
   Finder fieldsInSheet() {
     return find.descendant(
       of: find.byType(BottomSheet),
-      matching: find.byType(TextField),
+      matching: find.byType(TextFormField),
     );
   }
 
@@ -99,12 +99,16 @@ void main() {
       expect(fields, findsNothing);
     });
 
-    testWidgets('desabilita salvar quando nome ou descricao vazios', (
+    testWidgets('mostra validacao quando nome ou descricao vazios', (
       tester,
     ) async {
+      var saveCalls = 0;
+
       await pumpHost(
         tester,
-        onSave: ({required name, required description}) async {},
+        onSave: ({required name, required description}) async {
+          saveCalls++;
+        },
         onDelete: () async {},
       );
 
@@ -112,19 +116,21 @@ void main() {
       await tester.enterText(fields.at(0), '');
       await pumpFrames(tester, 2);
 
-      var saveButton = tester.widget<ElevatedButton>(
-        find.widgetWithText(ElevatedButton, 'Salvar'),
-      );
-      expect(saveButton.onPressed, isNull);
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Salvar'));
+      await pumpFrames(tester, 2);
+
+      expect(find.text('Informe o nome da tarefa'), findsOneWidget);
+      expect(saveCalls, 0);
 
       await tester.enterText(fields.at(0), 'Nome ok');
       await tester.enterText(fields.at(1), '');
       await pumpFrames(tester, 2);
 
-      saveButton = tester.widget<ElevatedButton>(
-        find.widgetWithText(ElevatedButton, 'Salvar'),
-      );
-      expect(saveButton.onPressed, isNull);
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Salvar'));
+      await pumpFrames(tester, 2);
+
+      expect(find.text('Informe a descrição'), findsOneWidget);
+      expect(saveCalls, 0);
     });
 
     testWidgets('mostra loading durante submit e fecha ao concluir', (

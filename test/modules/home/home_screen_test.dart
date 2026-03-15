@@ -206,8 +206,11 @@ void main() {
           description: 'Descricao A',
         ),
       ).thenAnswer(
-        (_) async =>
-            Task.create(userId: '1', name: 'Task A', description: 'Descricao A'),
+        (_) async => Task.create(
+          userId: '1',
+          name: 'Task A',
+          description: 'Descricao A',
+        ),
       );
 
       when(
@@ -223,8 +226,8 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 220));
 
-      await tester.enterText(find.byType(TextField).at(0), 'Task A');
-      await tester.enterText(find.byType(TextField).at(1), 'Descricao A');
+      await tester.enterText(find.byType(TextFormField).at(0), 'Task A');
+      await tester.enterText(find.byType(TextFormField).at(1), 'Descricao A');
       await tester.pump();
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Criar tarefa'));
