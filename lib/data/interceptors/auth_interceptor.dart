@@ -93,8 +93,6 @@ class AuthInterceptor extends dio.Interceptor {
 
             final originalResponse = await _client.fetch(requestOptions);
             return handler.resolve(originalResponse);
-          } else {
-            await _mediator.notify('redirect_login', auth.refreshToken);
           }
         } catch (_) {
           return handler.reject(err);
