@@ -4,6 +4,7 @@ library;
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:task_radar/data/network/http_service_adapter.dart';
 import 'package:task_radar/data/repositories/auth_repository.dart';
 import 'package:task_radar/data/storage/storage_impl.dart';
@@ -17,8 +18,12 @@ void main() {
   group('AuthRepository Integration', () {
     late StorageImpl storage;
     late AuthRepositoryImpl sut;
+    late Database database;
 
     setUpAll(() {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+
       FlutterSecureStorage.setMockInitialValues({});
       expect(
         apiBaseUrl.isNotEmpty,
@@ -41,6 +46,21 @@ void main() {
     setUp(() async {
       storage = const StorageImpl();
       await storage.removeAll();
+
+      database = await openDatabase(inMemoryDatabasePath, version: 1);
+      await database.execute('''
+        CREATE TABLE IF NOT EXISTS logged_user (
+          id          TEXT PRIMARY KEY,
+          full_name   TEXT NOT NULL,
+          email       TEXT NOT NULL,
+          phone       TEXT NOT NULL,
+          company     TEXT NOT NULL,
+          department  TEXT NOT NULL,
+          photo       TEXT NOT NULL,
+          user_type   TEXT NOT NULL CHECK(user_type IN ('admin','moderator'))
+        );
+      ''');
+
       sut = AuthRepositoryImpl(
         HttpServiceAdapterImp(
           client: Dio(
@@ -53,7 +73,12 @@ void main() {
           ),
         ),
         storage,
+        database: database,
       );
+    });
+
+    tearDown(() async {
+      await database.close();
     });
 
     test('deve autenticar na API e persistir os tokens', () async {
