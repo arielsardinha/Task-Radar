@@ -1,17 +1,31 @@
-# task_radar
+# Task Radar
 
-A new Flutter project.
+O **Task Radar** é um sistema de gestão de tarefas (**TODO LIST**) avançado, desenvolvido em Flutter, com foco em alta performance, robustez técnica e experiência do utilizador. Este projeto foi concebido para ser uma solução escalável, testável e com suporte completo ao funcionamento offline.
 
-## Getting Started
+O sistema integra o consumo da API pública DummyJSON com uma camada de persistência local baseada em SQLite e Secure Storage, gerindo fluxos complexos de autenticação JWT e permissões de acesso diferenciadas (Admin/Moderator).
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## 📖 Documentação Técnica e Arquitetura
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Para detalhes aprofundados sobre as decisões de engenharia, padrões de projeto aplicados (MVVM + BLoC), princípios SOLID respeitados e o roadmap detalhado de segurança e observabilidade, aceda ao guia completo:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+👉 **[VEJA O GUIA DE CONTRIBUIÇÃO E ARQUITETURA (CONTRIBUTING.md)](CONTRIBUTING.md)**
+
+---
+
+### Comandos de Execução
+
+**Configuração Inicial**
+Instalar Dependências: flutter pub get
+Gerar Código (DI e Mocks): flutter pub run build_runner build --delete-conflicting-outputs
+
+**Execução da App**
+Rodar com variáveis de ambiente: flutter run --dart-define-from-file=env.json
+
+**Execução de Testes**
+Validar regras de negócio e mapeamentos: flutter test -x integration
+
+---
+
+**Ariel Sardinha** *Engenheiro de Software*
