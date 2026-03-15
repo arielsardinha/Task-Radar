@@ -66,7 +66,7 @@ A aplicação de padrões de design foi fundamental para garantir que o código 
 
 - Benefício: Injeção centralizada que permite o gerenciamento eficiente do ciclo de vida dos objetos e facilita o "swap" de dependências durante a execução de testes automatizados.
 
-- Mediator Pattern
+#### Mediator Pattern
 
 - Aplicação: Utilizado para gerenciar a comunicação entre diferentes módulos ou estados globais sem criar acoplamento direto entre eles.
 
