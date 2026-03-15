@@ -9,7 +9,7 @@ import 'package:task_radar/data/storage/storage_impl.dart';
 import 'package:dio/io.dart' show IOHttpClientAdapter;
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:sqflite/sqflite.dart' show Database, openDatabase;
-
+import 'package:task_radar/global/mediator.dart';
 sealed class Bindings {
   static Future<void> register() async {
     final instance = GetIt.instance;
@@ -41,6 +41,8 @@ sealed class Bindings {
     instance.registerLazySingleton(
       () => HttpServiceAdapterImp(client: instance.get<dio.Dio>()),
     );
+
+    instance.registerLazySingleton(() => Mediator());
 
     instance.registerSingletonAsync<Database>(
       () async => await openDatabase('task_radar.db', version: 1),
@@ -80,6 +82,7 @@ sealed class Bindings {
       AuthInterceptor(
         client: instance.get<HttpServiceAdapterImp>(),
         storage: instance.get<StorageImpl>(),
+        mediator: instance.get<Mediator>(),
       ),
     );
 

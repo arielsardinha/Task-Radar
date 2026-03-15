@@ -1,22 +1,21 @@
-import 'dart:async' show TimeoutException;
-import 'dart:io' show SocketException;
 import "package:dio/dio.dart" as dio;
-import 'package:retry/retry.dart' show RetryOptions;
-import 'package:task_radar/data/adapter/request_adapter.dart';
-import 'package:task_radar/data/adapter/response_adapter.dart';
 import 'package:task_radar/data/network/http_service_adapter.dart';
 import 'package:task_radar/data/storage/refresh_token_model.dart';
 import 'package:task_radar/data/storage/storage.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
+import 'package:task_radar/global/mediator.dart';
 
 class AuthInterceptor extends dio.Interceptor {
+  final Mediator _mediator;
   final HttpServiceAdapter _client;
   final Storage _storage;
 
   AuthInterceptor({
     required HttpServiceAdapter client,
+    required Mediator mediator,
     required Storage storage,
   }) : _client = client,
+       _mediator = mediator,
        _storage = storage;
 
   Future<String?> _getJwtToken() async {
@@ -45,17 +44,6 @@ class AuthInterceptor extends dio.Interceptor {
       refreshToken: newRefreshToken,
     );
     await _storage.setItem(StorageSecureEnum.auth_jwt, newAuth.toJson());
-  }
-
-  Future<ResponseAdapter?> _refreshToken(RefreshTokenModel auth) async {
-    const retryOptions = RetryOptions(maxAttempts: 3);
-
-    final data = {"refreshToken": auth.refreshToken, "expiresInMins": 30};
-
-    return await retryOptions.retry(
-      () => _client.post(RequestAdapter(path: '/auth/refresh', data: data)),
-      retryIf: (e) => e is SocketException || e is TimeoutException,
-    );
   }
 
   bool _isTokenExpired(dio.DioException err) {
@@ -89,9 +77,14 @@ class AuthInterceptor extends dio.Interceptor {
       final auth = await _getAuth();
       if (auth != null) {
         try {
-          final response = await _refreshToken(auth);
-          final newToken = response?.data['accessToken'];
-          final newRefreshToken = response?.data['refreshToken'];
+          await _mediator.notify('refrash_token', auth.refreshToken);
+          final tokenUpdated = await _storage.getItemToFactory(
+            StorageSecureEnum.auth_jwt,
+            fromJson: RefreshTokenModel.fromJson,
+          );
+
+          final newToken = tokenUpdated?.token;
+          final newRefreshToken = tokenUpdated?.refreshToken;
           if (newToken != null && newRefreshToken != null) {
             await _updateJwt(auth, newToken, newRefreshToken);
 
@@ -100,6 +93,8 @@ class AuthInterceptor extends dio.Interceptor {
 
             final originalResponse = await _client.fetch(requestOptions);
             return handler.resolve(originalResponse);
+          } else {
+            await _mediator.notify('redirect_login', auth.refreshToken);
           }
         } catch (_) {
           return handler.reject(err);

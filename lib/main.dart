@@ -2,12 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
 import 'package:task_radar/bindings.dart';
+import 'package:task_radar/data/repositories/auth_repository.dart';
+import 'package:task_radar/global/mediator.dart';
 import 'package:task_radar/global/providers/provider_connectivity.dart';
 import 'package:task_radar/global/providers/provider_theme.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/routes/router_config.dart';
+import 'package:task_radar/routes/routes.dart';
 import 'package:task_radar/theme/app_theme.dart';
 
 Future<void> main() async {
@@ -39,6 +43,30 @@ class _InitialAplicationState extends State<InitialAplication> {
     });
 
     _initializeConnectivity();
+    final instance = GetIt.instance;
+    instance.get<Mediator>().register<String>('refrash_token', (data) async {
+      final isOnline = await _hasInternetConnection();
+      if (!isOnline) {
+        return;
+      }
+
+      await instance.get<AuthRepositoryImpl>().refreshSession(data);
+    });
+
+    instance.get<Mediator>().register<String>('redirect_login', (data) async {
+      final isOnline = await _hasInternetConnection();
+      if (!isOnline) {
+        return;
+      }
+      AppRoutes.router.go(Routes.login);
+    });
+  }
+
+  Future<bool> _hasInternetConnection() async {
+    final results = await _connectivity.checkConnectivity();
+    final isOnline = results.any((result) => result != ConnectivityResult.none);
+    _providerConnectivity.setOnline(isOnline);
+    return isOnline;
   }
 
   Future<void> _initializeConnectivity() async {
