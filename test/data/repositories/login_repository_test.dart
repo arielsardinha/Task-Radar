@@ -30,9 +30,7 @@ void main() {
     when(
       database.transaction(any, exclusive: anyNamed('exclusive')),
     ).thenAnswer((invocation) {
-      final callback =
-          invocation.positionalArguments.first
-              as Future<void> Function(dynamic txn);
+      final callback = invocation.positionalArguments.first as dynamic;
       return callback(transaction);
     });
     when(transaction.delete(any)).thenAnswer((_) async => 1);
@@ -41,7 +39,7 @@ void main() {
     sut = AuthRepositoryImpl(
       httpServiceAdapter,
       storage,
-      databaseProvider: () async => database,
+      database: database,
     );
   });
 
@@ -114,27 +112,28 @@ void main() {
             StorageSecureEnum.auth_user,
             argThat(
               isA<Map<String, dynamic>>()
-                  .having((m) => m['id'], 'id', 1)
-                  .having((m) => m['username'], 'username', 'usuario_teste')
+                  .having((m) => m['id'], 'id', '1')
+                  .having((m) => m['fullName'], 'fullName', 'Usuario Teste')
                   .having((m) => m['email'], 'email', 'usuario@teste.com')
-                  .having((m) => m['firstName'], 'firstName', 'Usuario')
-                  .having((m) => m['lastName'], 'lastName', 'Teste')
-                  .having((m) => m['role'], 'role', 'admin')
+                  .having((m) => m['phone'], 'phone', '11999999999')
+                  .having((m) => m['company'], 'company', 'Task Radar')
+                  .having((m) => m['department'], 'department', 'Produto')
+                  .having((m) => m['userType'], 'userType', 'admin')
                   .having(
-                    (m) => m['image'],
-                    'image',
+                    (m) => m['photo'],
+                    'photo',
                     'https://dummyjson.com/icon/usuario/128',
                   ),
             ),
           ),
         ]);
-        verify(database.execute(argThat(contains('CREATE TABLE IF NOT EXISTS logged_user')))).called(1);
         verify(transaction.delete('logged_user')).called(1);
         verify(
           transaction.insert(
             'logged_user',
             argThat(
               isA<Map<String, Object?>>()
+                  .having((m) => m['id'], 'id', '1')
                   .having((m) => m['full_name'], 'full_name', 'Usuario Teste')
                   .having((m) => m['email'], 'email', 'usuario@teste.com')
                   .having((m) => m['phone'], 'phone', '11999999999')

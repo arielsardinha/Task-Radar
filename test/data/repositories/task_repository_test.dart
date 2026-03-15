@@ -71,7 +71,7 @@ void main() {
       when(database.insert(any, any)).thenAnswer((_) async => 1);
 
       final result = await sut.create(
-        userId: 42,
+        userId: '42',
         name: 'Nova tarefa',
         description: 'Descricao da tarefa',
       );
@@ -80,13 +80,13 @@ void main() {
           verify(database.insert('tasks', captureAny)).captured.single
               as Map<String, Object?>;
 
-      expect(result.userId, 42);
+      expect(result.userId, '42');
       expect(result.name, 'Nova tarefa');
       expect(result.description, 'Descricao da tarefa');
       expect(result.status, TaskStatus.pending);
       expect(result.remoteId, isNull);
 
-      expect(captured['user_id'], 42);
+      expect(captured['user_id'], '42');
       expect(captured['name'], 'Nova tarefa');
       expect(captured['description'], 'Descricao da tarefa');
       expect(captured['status'], TaskStatus.pending.name);
@@ -121,7 +121,7 @@ void main() {
           ),
         ).thenAnswer((_) async => 1);
 
-        final task = Task.create(userId: 2, name: 'A', description: 'B');
+        final task = Task.create(userId: '1', name: 'A', description: 'B');
 
         final updated = await sut.updateTask(task);
 
@@ -173,7 +173,7 @@ void main() {
         final task = Task(
           localId: 'local-1',
           remoteId: 999,
-          userId: 2,
+          userId: '1',
           name: 'A',
           description: 'B',
           status: TaskStatus.pending,
@@ -221,7 +221,7 @@ void main() {
         ),
       ).thenAnswer((_) async => 1);
 
-      final original = Task.create(userId: 10, name: 'x', description: 'y');
+      final original = Task.create(userId: '1', name: 'x', description: 'y');
 
       final result = await sut.toggleCompleted(original);
 
@@ -267,7 +267,7 @@ void main() {
       final original = Task(
         localId: 'l1',
         remoteId: 30,
-        userId: 10,
+        userId: '1',
         name: 'x',
         description: 'y',
         status: TaskStatus.completed,
@@ -317,7 +317,7 @@ void main() {
         ),
       ).thenAnswer((_) async => 1);
 
-      final task = Task.create(userId: 7, name: 'name', description: 'desc');
+      final task = Task.create(userId: '1', name: 'name', description: 'desc');
 
       await sut.delete(task);
 
@@ -358,7 +358,7 @@ void main() {
         ],
       );
 
-      final result = await sut.countByStatus(userId: 99);
+      final result = await sut.countByStatus(userId: '99');
 
       final queryCall = verify(
         database.rawQuery(captureAny, captureAny),
@@ -367,7 +367,7 @@ void main() {
         queryCall[0] as String,
         contains('SUM(CASE WHEN status = \'pending\''),
       );
-      expect(queryCall[1], [99]);
+      expect(queryCall[1], ['99']);
 
       expect(result.pending, 4);
       expect(result.completed, 6);
@@ -376,7 +376,7 @@ void main() {
     test('deve retornar zero quando query nao tiver linhas', () async {
       when(database.rawQuery(any, any)).thenAnswer((_) async => []);
 
-      final result = await sut.countByStatus(userId: 1);
+      final result = await sut.countByStatus(userId: '1');
 
       expect(result.pending, 0);
       expect(result.completed, 0);
@@ -401,7 +401,7 @@ void main() {
         ],
       );
 
-      final result = await sut.countByStatus(userId: 1);
+      final result = await sut.countByStatus(userId: '1');
 
       expect(result.pending, 2);
       expect(result.completed, 0);

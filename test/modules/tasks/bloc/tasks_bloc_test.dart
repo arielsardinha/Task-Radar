@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:task_radar/data/models/me_model.dart';
+import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
 import 'package:task_radar/domain/task.dart';
 import 'package:task_radar/modules/tasks/bloc/tasks_bloc.dart';
@@ -14,12 +14,15 @@ void main() {
   late MockStorageImpl storage;
   late TasksBloc tasksBloc;
 
-  const meModel = MeModel(
-    id: 77,
-    firstName: 'Usuario',
-    lastName: 'Teste',
+  const meModel = User(
+    id: '77',
+    fullName: 'Usuario Teste',
     email: 'usuario@teste.com',
-    role: 'moderator',
+    phone: '11999999999',
+    company: 'Task Radar',
+    department: 'Produto',
+    photo: 'https://dummyjson.com/icon/usuario/128',
+    userType: UserType.moderator,
   );
 
   final createdAt = DateTime(2026, 1, 1, 10, 0);
@@ -34,7 +37,7 @@ void main() {
     return Task(
       localId: localId,
       remoteId: remoteId,
-      userId: 77,
+      userId: '77',
       name: name,
       description: description,
       status: status,
@@ -50,20 +53,20 @@ void main() {
   setUpAll(() {
     provideDummy<Future<List<Task>>>(Future.value(<Task>[]));
     provideDummy<Future<Task>>(
-      Future.value(Task.create(userId: 1, name: 'dummy', description: 'dummy')),
+      Future.value(Task.create(userId: '1', name: 'dummy', description: 'dummy')),
     );
     provideDummy<Task>(
-      Task.create(userId: 1, name: 'dummy', description: 'dummy'),
+      Task.create(userId: '1', name: 'dummy', description: 'dummy'),
     );
   });
 
-  void stubAuthenticated([MeModel? value]) {
+  void stubAuthenticated([User? value = meModel]) {
     when(
-      storage.getItemToFactory<MeModel, StorageSecureEnum<MeModel>>(
+      storage.getItemToFactory<User, StorageSecureEnum<User>>(
         StorageSecureEnum.auth_user,
         fromJson: anyNamed('fromJson'),
       ),
-    ).thenAnswer((_) async => value ?? meModel);
+    ).thenAnswer((_) async => value);
   }
 
   setUp(() {
@@ -105,7 +108,7 @@ void main() {
       stubAuthenticated();
       final tasks = [pendingAlpha, completedBeta, pendingGamma];
       when(
-        taskRepository.getAllByUser(userId: 77),
+        taskRepository.getAllByUser(userId: '77'),
       ).thenAnswer((_) async => tasks);
 
       tasksBloc.add(TasksEventLoad());
@@ -124,11 +127,11 @@ void main() {
         ]),
       );
 
-      verify(taskRepository.getAllByUser(userId: 77)).called(1);
+      verify(taskRepository.getAllByUser(userId: '77')).called(1);
     });
 
     test('deve emitir Failure quando user id for nulo', () async {
-      stubAuthenticated(meModel.copyWith(id: null));
+      stubAuthenticated(null);
 
       tasksBloc.add(TasksEventLoad());
 
@@ -156,7 +159,7 @@ void main() {
     test('deve emitir Failure quando getAllByUser lancar excecao', () async {
       stubAuthenticated();
       when(
-        taskRepository.getAllByUser(userId: 77),
+        taskRepository.getAllByUser(userId: '77'),
       ).thenThrow(Exception('erro'));
 
       tasksBloc.add(TasksEventLoad());
@@ -186,7 +189,7 @@ void main() {
       stubAuthenticated();
       final tasks = [pendingAlpha, completedBeta, pendingGamma];
       when(
-        taskRepository.getAllByUser(userId: 77),
+        taskRepository.getAllByUser(userId: '77'),
       ).thenAnswer((_) async => tasks);
 
       tasksBloc
@@ -222,7 +225,7 @@ void main() {
       stubAuthenticated();
       final tasks = [pendingGamma, completedBeta, pendingAlpha];
       when(
-        taskRepository.getAllByUser(userId: 77),
+        taskRepository.getAllByUser(userId: '77'),
       ).thenAnswer((_) async => tasks);
 
       tasksBloc
@@ -267,7 +270,7 @@ void main() {
       stubAuthenticated();
       final tasks = [pendingAlpha, completedBeta, pendingGamma];
       when(
-        taskRepository.getAllByUser(userId: 77),
+        taskRepository.getAllByUser(userId: '77'),
       ).thenAnswer((_) async => tasks);
 
       tasksBloc
@@ -304,7 +307,7 @@ void main() {
       stubAuthenticated();
       final tasks = [pendingAlpha, completedBeta];
       when(
-        taskRepository.getAllByUser(userId: 77),
+        taskRepository.getAllByUser(userId: '77'),
       ).thenAnswer((_) async => tasks);
       when(
         taskRepository.updateTask(any),
@@ -357,7 +360,7 @@ void main() {
         ),
       ).called(1);
       verify(
-        taskRepository.getAllByUser(userId: 77),
+        taskRepository.getAllByUser(userId: '77'),
       ).called(greaterThanOrEqualTo(2));
     });
 
@@ -365,7 +368,7 @@ void main() {
       stubAuthenticated();
       final tasks = [pendingAlpha, completedBeta];
       when(
-        taskRepository.getAllByUser(userId: 77),
+        taskRepository.getAllByUser(userId: '77'),
       ).thenAnswer((_) async => tasks);
       when(
         taskRepository.delete(any),
@@ -403,7 +406,7 @@ void main() {
 
       verify(taskRepository.delete(pendingAlpha)).called(1);
       verify(
-        taskRepository.getAllByUser(userId: 77),
+        taskRepository.getAllByUser(userId: '77'),
       ).called(greaterThanOrEqualTo(2));
     });
 
@@ -434,7 +437,7 @@ void main() {
         stubAuthenticated();
         final tasks = [pendingAlpha, completedBeta];
         when(
-          taskRepository.getAllByUser(userId: 77),
+          taskRepository.getAllByUser(userId: '77'),
         ).thenAnswer((_) async => tasks);
         when(taskRepository.toggleCompleted(pendingAlpha)).thenAnswer(
           (_) async => pendingAlpha.copyWith(status: TaskStatus.completed),
@@ -471,7 +474,7 @@ void main() {
         );
 
         verify(taskRepository.toggleCompleted(pendingAlpha)).called(1);
-        verify(taskRepository.getAllByUser(userId: 77)).called(greaterThan(1));
+        verify(taskRepository.getAllByUser(userId: '77')).called(greaterThan(1));
       },
     );
 
@@ -519,13 +522,13 @@ void main() {
       stubAuthenticated();
       when(
         taskRepository.create(
-          userId: 77,
+          userId: '77',
           name: 'Nova',
           description: 'Descricao',
         ),
       ).thenAnswer((_) async => pendingAlpha);
       when(
-        taskRepository.getAllByUser(userId: 77),
+        taskRepository.getAllByUser(userId: '77'),
       ).thenAnswer((_) async => [pendingAlpha]);
 
       tasksBloc.add(
@@ -550,19 +553,19 @@ void main() {
 
       verify(
         taskRepository.create(
-          userId: 77,
+          userId: '77',
           name: 'Nova',
           description: 'Descricao',
         ),
       ).called(1);
-      verify(taskRepository.getAllByUser(userId: 77)).called(1);
+      verify(taskRepository.getAllByUser(userId: '77')).called(1);
     });
 
     test('deve emitir Failure quando create falhar', () async {
       stubAuthenticated();
       when(
         taskRepository.create(
-          userId: 77,
+          userId: '77',
           name: 'Nova',
           description: 'Descricao',
         ),
@@ -582,8 +585,8 @@ void main() {
       );
     });
 
-    test('deve emitir Failure quando create for chamado sem user id', () async {
-      stubAuthenticated(meModel.copyWith(id: null));
+    test('deve emitir Failure quando create for chamado sem usuario autenticado', () async {
+      stubAuthenticated(null);
 
       tasksBloc.add(
         TasksEventCreateTask(name: 'Nova', description: 'Descricao'),
@@ -597,7 +600,7 @@ void main() {
               .having(
                 (s) => s.message,
                 'message',
-                'Nao foi possivel identificar o usuario autenticado.',
+                'Falha ao criar tarefa.',
               ),
         ),
       );
@@ -634,15 +637,15 @@ void main() {
         ),
       ];
 
-      when(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 0)).thenAnswer(
+      when(taskRepository.getAllByUser(userId: '77', limit: 30, skip: 0)).thenAnswer(
         (_) async => firstPage,
       );
       when(
-        taskRepository.getAllByUser(userId: 77, limit: 30, skip: 30),
+        taskRepository.getAllByUser(userId: '77', limit: 30, skip: 30),
       ).thenAnswer((_) async => secondPage);
 
       tasksBloc.add(TasksEventLoad());
-      await untilCalled(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 0));
+      await untilCalled(taskRepository.getAllByUser(userId: '77', limit: 30, skip: 0));
       await Future<void>.delayed(Duration.zero);
 
       expect(tasksBloc.state.status, TasksStateStatus.success);
@@ -650,7 +653,7 @@ void main() {
       expect(tasksBloc.state.hasReachedEnd, isFalse);
 
       tasksBloc.add(TasksEventLoadMore());
-      await untilCalled(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 30));
+      await untilCalled(taskRepository.getAllByUser(userId: '77', limit: 30, skip: 30));
       await Future<void>.delayed(Duration.zero);
 
       expect(tasksBloc.state.status, TasksStateStatus.success);
@@ -658,7 +661,7 @@ void main() {
       expect(tasksBloc.state.allTasks.length, 31);
       expect(tasksBloc.state.hasReachedEnd, isTrue);
 
-      verify(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 30)).called(1);
+      verify(taskRepository.getAllByUser(userId: '77', limit: 30, skip: 30)).called(1);
     });
 
     test('nao deve carregar mais quando fim da lista foi atingido', () async {
@@ -668,12 +671,12 @@ void main() {
         completedBeta,
       ];
 
-      when(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 0)).thenAnswer(
+      when(taskRepository.getAllByUser(userId: '77', limit: 30, skip: 0)).thenAnswer(
         (_) async => firstPage,
       );
 
       tasksBloc.add(TasksEventLoad());
-      await untilCalled(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 0));
+      await untilCalled(taskRepository.getAllByUser(userId: '77', limit: 30, skip: 0));
       await Future<void>.delayed(Duration.zero);
 
       expect(tasksBloc.state.hasReachedEnd, isTrue);
@@ -681,7 +684,7 @@ void main() {
       tasksBloc.add(TasksEventLoadMore());
       await Future<void>.delayed(const Duration(milliseconds: 20));
 
-      verifyNever(taskRepository.getAllByUser(userId: 77, limit: 30, skip: 2));
+      verifyNever(taskRepository.getAllByUser(userId: '77', limit: 30, skip: 2));
     });
   });
 }

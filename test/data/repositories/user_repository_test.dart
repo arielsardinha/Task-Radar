@@ -3,6 +3,7 @@ import 'package:mockito/mockito.dart';
 import 'package:task_radar/data/adapter/request_adapter.dart';
 import 'package:task_radar/data/adapter/response_adapter.dart';
 import 'package:task_radar/data/repositories/user_repository.dart';
+import 'package:task_radar/domain/user.dart';
 
 import '../../mocks.mocks.dart';
 
@@ -12,11 +13,13 @@ void main() {
   });
 
   late MockHttpServiceAdapter httpServiceAdapter;
+  late MockDatabase database;
   late UserRepositoryImpl sut;
 
   setUp(() {
     httpServiceAdapter = MockHttpServiceAdapter();
-    sut = UserRepositoryImpl(httpServiceAdapter);
+    database = MockDatabase();
+    sut = UserRepositoryImpl(httpServiceAdapter, database: database);
   });
 
   group('UserRepositoryImpl.getUsers', () {
@@ -50,10 +53,10 @@ void main() {
       final result = await sut.getUsers(limit: 15, skip: 30);
 
       expect(result, hasLength(2));
-      expect(result.first.firstName, 'Maria');
-      expect(result.first.role, 'admin');
-      expect(result.last.firstName, 'Joao');
-      expect(result.last.role, 'moderator');
+      expect(result.first.fullName, 'Maria Silva');
+      expect(result.first.userType, UserType.admin);
+      expect(result.last.fullName, 'Joao Souza');
+      expect(result.last.userType, UserType.moderator);
 
       final request =
           verify(httpServiceAdapter.get<dynamic>(captureAny)).captured.single
@@ -150,8 +153,8 @@ void main() {
       final result = await sut.getUsers();
 
       expect(result, hasLength(1));
-      expect(result.single.id, 3);
-      expect(result.single.firstName, 'Ana');
+      expect(result.single.id, '3');
+      expect(result.single.fullName, 'Ana Lima');
     });
   });
 }

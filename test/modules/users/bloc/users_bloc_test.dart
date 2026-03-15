@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:task_radar/data/models/me_model.dart';
+import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/modules/users/bloc/users_bloc.dart';
 import 'package:task_radar/modules/users/bloc/users_event.dart';
 import 'package:task_radar/modules/users/bloc/users_state.dart';
@@ -8,28 +8,32 @@ import '../../../mocks.mocks.dart';
 
 void main() {
   setUpAll(() {
-    provideDummy<Future<List<MeModel>>>(Future.value(const <MeModel>[]));
+    provideDummy<Future<List<User>>>(Future.value(const <User>[]));
   });
 
   late MockUserRepository userRepository;
   late UsersBloc usersBloc;
 
-  const mariaAdmin = MeModel(
-    id: 1,
-    firstName: 'Maria',
-    lastName: 'Silva',
+  const mariaAdmin = User(
+    id: '1',
+    fullName: 'Maria Silva',
     email: 'maria@teste.com',
-    image: 'https://dummyjson.com/icon/maria/128',
-    role: 'admin',
+    phone: '11999990001',
+    company: 'Task Radar',
+    department: 'Produto',
+    photo: 'https://dummyjson.com/icon/maria/128',
+    userType: UserType.admin,
   );
 
-  const joaoModerator = MeModel(
-    id: 2,
-    firstName: 'Joao',
-    lastName: 'Souza',
+  const joaoModerator = User(
+    id: '2',
+    fullName: 'Joao Souza',
     email: 'joao@teste.com',
-    image: 'https://dummyjson.com/icon/joao/128',
-    role: 'moderator',
+    phone: '11999990002',
+    company: 'Task Radar',
+    department: 'Produto',
+    photo: 'https://dummyjson.com/icon/joao/128',
+    userType: UserType.moderator,
   );
 
   setUp(() {

@@ -5,9 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
-import 'package:task_radar/data/models/me_model.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
 import 'package:task_radar/domain/task.dart';
+import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/modules/home/components/new_task_bottom_sheet.dart';
 import 'package:task_radar/modules/tasks/bloc/tasks_bloc.dart';
 import 'package:task_radar/modules/tasks/bloc/tasks_event.dart';
@@ -23,12 +23,15 @@ void main() {
   late TasksBloc tasksBloc;
   late List<Task> taskStore;
 
-  const meModel = MeModel(
-    id: 1,
-    firstName: 'Usuario',
-    lastName: 'Teste',
+  const meModel = User(
+    id: '1',
+    fullName: 'Usuario Teste',
     email: 'usuario@teste.com',
-    role: 'moderator',
+    phone: '11999999999',
+    company: 'Task Radar',
+    department: 'Produto',
+    photo: 'https://dummyjson.com/icon/usuario/128',
+    userType: UserType.moderator,
   );
 
   final baseDate = DateTime(2026, 3, 14, 10);
@@ -43,7 +46,7 @@ void main() {
     return Task(
       localId: localId,
       remoteId: remoteId,
-      userId: 1,
+      userId: '1',
       name: name,
       description: description,
       status: status,
@@ -54,7 +57,7 @@ void main() {
 
   setUpAll(() {
     provideDummy<Task>(
-      Task.create(userId: 1, name: 'dummy', description: 'dummy'),
+      Task.create(userId: '1', name: 'dummy', description: 'dummy'),
     );
     provideDummy<Future<List<Task>>>(Future.value(<Task>[]));
   });
@@ -88,7 +91,7 @@ void main() {
     ];
 
     when(
-      storage.getItemToFactory<MeModel, StorageSecureEnum<MeModel>>(
+      storage.getItemToFactory<User, StorageSecureEnum<User>>(
         StorageSecureEnum.auth_user,
         fromJson: anyNamed('fromJson'),
       ),

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:task_radar/data/models/me_model.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
+import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/modules/profile/bloc/profile_bloc.dart';
 import 'package:task_radar/modules/profile/bloc/profile_event.dart';
 import 'package:task_radar/modules/profile/bloc/profile_state.dart';
@@ -12,18 +12,15 @@ void main() {
   late MockStorageImpl storage;
   late ProfileBloc profileBloc;
 
-  const meModel = MeModel(
-    id: 7,
-    firstName: 'Emily',
-    lastName: 'Santos',
+  const meModel = User(
+    id: '7',
+    fullName: 'Emily Santos',
     email: 'emilysantos@gmail.com',
     phone: '(49) 9923155780',
-    image: 'https://cdn.example.com/photo.png',
-    role: 'moderator',
-    company: MeCompanyModel(
-      name: 'Senai Solucoes Digitais',
-      department: 'Squad Apps',
-    ),
+    photo: 'https://cdn.example.com/photo.png',
+    userType: UserType.moderator,
+    company: 'Senai Solucoes Digitais',
+    department: 'Squad Apps',
   );
 
   setUp(() {
@@ -52,7 +49,7 @@ void main() {
         emitsInOrder([
           isA<ProfileStateLoading>(),
           isA<ProfileStateSuccess>()
-              .having((s) => s.profile.firstName, 'firstName', 'Emily')
+              .having((s) => s.profile.firstName, 'firstName', 'Emily Santos')
               .having((s) => s.profile.fullName, 'fullName', 'Emily Santos')
               .having((s) => s.profile.email, 'email', 'emilysantos@gmail.com')
               .having((s) => s.profile.type, 'type', 'Moderador'),

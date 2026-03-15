@@ -17,6 +17,7 @@ import 'package:task_radar/modules/login/login_screen.dart';
 import '../../mocks.mocks.dart';
 
 const dummyUser = User(
+  id: '1',
   fullName: 'Usuario Teste',
   email: 'usuario@teste.com',
   phone: '11999999999',
@@ -119,18 +120,14 @@ void main() {
 
     testWidgets('deve entrar offline sem chamar login remoto', (tester) async {
       providerConnectivity.setOnline(false);
+      when(authRepository.loginOffline()).thenAnswer((_) async => dummyUser);
       await pumpLoginScreen(tester);
 
       await tester.tap(offlineLoginButtonFinder());
       await settleBlocAsyncChain(tester);
 
       verifyNever(authRepository.login(any, any));
-      verify(
-        storage.setItem(
-          StorageSecureEnum.auth_user,
-          any,
-        ),
-      ).called(1);
+      verify(authRepository.loginOffline()).called(1);
     });
   });
 

@@ -5,10 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
-import 'package:task_radar/data/models/me_model.dart';
+import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
 import 'package:task_radar/domain/task.dart';
-import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/modules/home/bloc/home_bloc.dart';
 import 'package:task_radar/modules/home/home_screen.dart';
@@ -20,15 +19,19 @@ void main() {
   late MockStorageImpl storage;
   late HomeBloc homeBloc;
 
-  const meModel = MeModel(
-    id: 1,
-    firstName: 'Usuario',
-    lastName: 'Teste',
+  const meModel = User(
+    id: '1',
+    fullName: 'Usuario Teste',
     email: 'usuario@teste.com',
-    role: 'moderator',
+    phone: '11999999999',
+    company: 'Task Radar',
+    department: 'Produto',
+    photo: 'https://dummyjson.com/icon/usuario/128',
+    userType: UserType.moderator,
   );
 
   const domainUser = User(
+    id: '1',
     fullName: 'Usuario Teste',
     email: 'usuario@teste.com',
     phone: '11999999999',
@@ -40,7 +43,7 @@ void main() {
 
   setUpAll(() {
     provideDummy<Task>(
-      Task.create(userId: 1, name: 'dummy', description: 'dummy'),
+      Task.create(userId: '1', name: 'dummy', description: 'dummy'),
     );
   });
 
@@ -94,7 +97,7 @@ void main() {
     testWidgets('deve exibir loading quando estado inicial/loading', (
       tester,
     ) async {
-      final loadingCompleter = Completer<MeModel?>();
+      final loadingCompleter = Completer<User?>();
       when(
         storage.getItemToFactory(
           StorageSecureEnum.auth_user,
@@ -121,7 +124,7 @@ void main() {
       ).thenAnswer((_) async => meModel);
 
       when(
-        taskRepository.countByStatus(userId: 1),
+        taskRepository.countByStatus(userId: '1'),
       ).thenAnswer((_) async => (pending: 4, completed: 8));
 
       await pumpHomeScreen(tester);
@@ -146,7 +149,7 @@ void main() {
         ).thenAnswer((_) async => meModel);
 
         when(
-          taskRepository.countByStatus(userId: 1),
+          taskRepository.countByStatus(userId: '1'),
         ).thenThrow(Exception('erro'));
 
         await pumpHomeScreen(tester);
@@ -170,7 +173,7 @@ void main() {
       ).thenAnswer((_) async => meModel);
 
       when(
-        taskRepository.countByStatus(userId: 1),
+        taskRepository.countByStatus(userId: '1'),
       ).thenAnswer((_) async => (pending: 1, completed: 1));
 
       await pumpHomeScreen(tester);
@@ -198,17 +201,17 @@ void main() {
 
       when(
         taskRepository.create(
-          userId: 1,
+          userId: '1',
           name: 'Task A',
           description: 'Descricao A',
         ),
       ).thenAnswer(
         (_) async =>
-            Task.create(userId: 1, name: 'Task A', description: 'Descricao A'),
+            Task.create(userId: '1', name: 'Task A', description: 'Descricao A'),
       );
 
       when(
-        taskRepository.countByStatus(userId: 1),
+        taskRepository.countByStatus(userId: '1'),
       ).thenAnswer((_) async => (pending: 2, completed: 1));
 
       await pumpHomeScreen(tester);
@@ -232,7 +235,7 @@ void main() {
 
       verify(
         taskRepository.create(
-          userId: 1,
+          userId: '1',
           name: 'Task A',
           description: 'Descricao A',
         ),

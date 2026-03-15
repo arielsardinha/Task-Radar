@@ -9,17 +9,15 @@ import 'package:dio/dio.dart' as _i2;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i10;
-import 'package:sqflite_common/sql.dart' as _i15;
-import 'package:sqflite_common/sqlite_api.dart' as _i3;
+import 'package:sqflite/sqflite.dart' as _i3;
 import 'package:task_radar/data/adapter/request_adapter.dart' as _i9;
 import 'package:task_radar/data/adapter/response_adapter.dart' as _i8;
-import 'package:task_radar/data/models/me_model.dart' as _i18;
 import 'package:task_radar/data/network/http_service_adapter.dart' as _i7;
 import 'package:task_radar/data/repositories/auth_repository.dart' as _i11;
 import 'package:task_radar/data/repositories/task_repository.dart' as _i13;
-import 'package:task_radar/data/repositories/user_repository.dart' as _i17;
+import 'package:task_radar/data/repositories/user_repository.dart' as _i16;
 import 'package:task_radar/data/storage/storage.dart' as _i6;
-import 'package:task_radar/data/storage/storage_impl.dart' as _i16;
+import 'package:task_radar/data/storage/storage_impl.dart' as _i15;
 import 'package:task_radar/domain/task.dart' as _i14;
 import 'package:task_radar/domain/user.dart' as _i12;
 
@@ -1267,6 +1265,25 @@ class MockAuthRepository extends _i1.Mock implements _i11.AuthRepository {
             returnValueForMissingStub: _i4.Future<_i12.User?>.value(),
           )
           as _i4.Future<_i12.User?>);
+
+  @override
+  _i4.Future<_i12.User> loginOffline() =>
+      (super.noSuchMethod(
+            Invocation.method(#loginOffline, []),
+            returnValue: _i4.Future<_i12.User>.value(
+              _i10.dummyValue<_i12.User>(
+                this,
+                Invocation.method(#loginOffline, []),
+              ),
+            ),
+            returnValueForMissingStub: _i4.Future<_i12.User>.value(
+              _i10.dummyValue<_i12.User>(
+                this,
+                Invocation.method(#loginOffline, []),
+              ),
+            ),
+          )
+          as _i4.Future<_i12.User>);
 }
 
 /// A class which mocks [TaskRepository].
@@ -1275,7 +1292,7 @@ class MockAuthRepository extends _i1.Mock implements _i11.AuthRepository {
 class MockTaskRepository extends _i1.Mock implements _i13.TaskRepository {
   @override
   _i4.Future<List<_i14.Task>> getAllByUser({
-    required int? userId,
+    required String? userId,
     int? limit = 30,
     int? skip = 0,
   }) =>
@@ -1294,7 +1311,7 @@ class MockTaskRepository extends _i1.Mock implements _i13.TaskRepository {
 
   @override
   _i4.Future<_i14.Task> create({
-    required int? userId,
+    required String? userId,
     required String? name,
     required String? description,
   }) =>
@@ -1376,7 +1393,7 @@ class MockTaskRepository extends _i1.Mock implements _i13.TaskRepository {
 
   @override
   _i4.Future<({int completed, int pending})> countByStatus({
-    required int? userId,
+    required String? userId,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#countByStatus, [], {#userId: userId}),
@@ -1630,7 +1647,7 @@ class MockDatabase extends _i1.Mock implements _i3.Database {
     String? table,
     Map<String, Object?>? values, {
     String? nullColumnHack,
-    _i15.ConflictAlgorithm? conflictAlgorithm,
+    _i3.ConflictAlgorithm? conflictAlgorithm,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -1828,7 +1845,7 @@ class MockDatabase extends _i1.Mock implements _i3.Database {
     Map<String, Object?>? values, {
     String? where,
     List<Object?>? whereArgs,
-    _i15.ConflictAlgorithm? conflictAlgorithm,
+    _i3.ConflictAlgorithm? conflictAlgorithm,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -1923,7 +1940,7 @@ class MockTransaction extends _i1.Mock implements _i3.Transaction {
     String? table,
     Map<String, Object?>? values, {
     String? nullColumnHack,
-    _i15.ConflictAlgorithm? conflictAlgorithm,
+    _i3.ConflictAlgorithm? conflictAlgorithm,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -2121,7 +2138,7 @@ class MockTransaction extends _i1.Mock implements _i3.Transaction {
     Map<String, Object?>? values, {
     String? where,
     List<Object?>? whereArgs,
-    _i15.ConflictAlgorithm? conflictAlgorithm,
+    _i3.ConflictAlgorithm? conflictAlgorithm,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -2181,7 +2198,7 @@ class MockTransaction extends _i1.Mock implements _i3.Transaction {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockStorageImpl<T extends _i6.StorageEnum<Object>> extends _i1.Mock
-    implements _i16.StorageImpl<T> {
+    implements _i15.StorageImpl<T> {
   @override
   _i5.FlutterSecureStorage get secureStorage =>
       (super.noSuchMethod(
@@ -2251,15 +2268,24 @@ class MockStorageImpl<T extends _i6.StorageEnum<Object>> extends _i1.Mock
 /// A class which mocks [UserRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockUserRepository extends _i1.Mock implements _i17.UserRepository {
+class MockUserRepository extends _i1.Mock implements _i16.UserRepository {
   @override
-  _i4.Future<List<_i18.MeModel>> getUsers({int? limit, int? skip}) =>
+  _i4.Future<List<_i12.User>> getUsers({int? limit, int? skip}) =>
       (super.noSuchMethod(
             Invocation.method(#getUsers, [], {#limit: limit, #skip: skip}),
-            returnValue: _i4.Future<List<_i18.MeModel>>.value(<_i18.MeModel>[]),
-            returnValueForMissingStub: _i4.Future<List<_i18.MeModel>>.value(
-              <_i18.MeModel>[],
+            returnValue: _i4.Future<List<_i12.User>>.value(<_i12.User>[]),
+            returnValueForMissingStub: _i4.Future<List<_i12.User>>.value(
+              <_i12.User>[],
             ),
           )
-          as _i4.Future<List<_i18.MeModel>>);
+          as _i4.Future<List<_i12.User>>);
+
+  @override
+  _i4.Future<void> ensureScheme() =>
+      (super.noSuchMethod(
+            Invocation.method(#ensureScheme, []),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
 }

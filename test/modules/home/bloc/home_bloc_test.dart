@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:task_radar/data/models/me_model.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
 import 'package:task_radar/domain/task.dart';
+import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/modules/home/bloc/home_bloc.dart';
 import 'package:task_radar/modules/home/bloc/home_event.dart';
 import 'package:task_radar/modules/home/bloc/home_state.dart';
@@ -14,17 +14,20 @@ void main() {
   late MockStorageImpl storage;
   late HomeBloc homeBloc;
 
-  const meModel = MeModel(
-    id: 77,
-    firstName: 'Usuario',
-    lastName: 'Teste',
+  const meModel = User(
+    id: '77',
+    fullName: 'Usuario Teste',
     email: 'usuario@teste.com',
-    role: 'moderator',
+    phone: '11999999999',
+    company: 'Task Radar',
+    department: 'Produto',
+    photo: 'https://dummyjson.com/icon/usuario/128',
+    userType: UserType.moderator,
   );
 
   setUpAll(() {
     provideDummy<Task>(
-      Task.create(userId: 1, name: 'dummy', description: 'dummy'),
+      Task.create(userId: '1', name: 'dummy', description: 'dummy'),
     );
   });
 
@@ -50,7 +53,7 @@ void main() {
         ).thenAnswer((_) async => meModel);
 
         when(
-          taskRepository.countByStatus(userId: 77),
+          taskRepository.countByStatus(userId: '77'),
         ).thenAnswer((_) async => (pending: 2, completed: 5));
 
         homeBloc.add(HomeEventLoadOverview());
@@ -66,7 +69,7 @@ void main() {
           ]),
         );
 
-        verify(taskRepository.countByStatus(userId: 77)).called(1);
+        verify(taskRepository.countByStatus(userId: '77')).called(1);
       },
     );
 
@@ -107,7 +110,7 @@ void main() {
       ).thenAnswer((_) async => meModel);
 
       when(
-        taskRepository.countByStatus(userId: 77),
+        taskRepository.countByStatus(userId: '77'),
       ).thenThrow(Exception('erro'));
 
       homeBloc.add(HomeEventLoadOverview());
@@ -139,20 +142,20 @@ void main() {
 
         when(
           taskRepository.create(
-            userId: 77,
+            userId: '77',
             name: 'Estudar bloc',
             description: 'Ler documentacao',
           ),
         ).thenAnswer(
           (_) async => Task.create(
-            userId: 77,
+            userId: '77',
             name: 'Estudar bloc',
             description: 'Ler documentacao',
           ),
         );
 
         when(
-          taskRepository.countByStatus(userId: 77),
+          taskRepository.countByStatus(userId: '77'),
         ).thenAnswer((_) async => (pending: 3, completed: 1));
 
         homeBloc.add(
@@ -174,12 +177,12 @@ void main() {
 
         verify(
           taskRepository.create(
-            userId: 77,
+            userId: '77',
             name: 'Estudar bloc',
             description: 'Ler documentacao',
           ),
         ).called(1);
-        verify(taskRepository.countByStatus(userId: 77)).called(1);
+        verify(taskRepository.countByStatus(userId: '77')).called(1);
       },
     );
 
@@ -192,7 +195,7 @@ void main() {
       ).thenAnswer((_) async => meModel);
 
       when(
-        taskRepository.create(userId: 77, name: 'Erro', description: 'Falhar'),
+        taskRepository.create(userId: '77', name: 'Erro', description: 'Falhar'),
       ).thenThrow(Exception('erro ao criar'));
 
       homeBloc.add(HomeEventCreateTask(name: 'Erro', description: 'Falhar'));
@@ -208,7 +211,7 @@ void main() {
         ),
       );
 
-      verifyNever(taskRepository.countByStatus(userId: 77));
+      verifyNever(taskRepository.countByStatus(userId: '77'));
     });
   });
 }

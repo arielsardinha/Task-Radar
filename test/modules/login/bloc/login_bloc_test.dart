@@ -8,6 +8,7 @@ import 'package:task_radar/modules/login/bloc/login_state.dart';
 import '../../../mocks.mocks.dart';
 
 const dummyUser = User(
+  id: '1',
   fullName: 'Usuario Teste',
   email: 'usuario@teste.com',
   phone: '11999999999',
