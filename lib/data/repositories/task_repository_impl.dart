@@ -78,35 +78,39 @@ final class TaskRepositoryImpl implements TaskRepository {
     int limit = _defaultPageSize,
     int skip = 0,
   }) async {
+    final apiTasks = <Task>[];
     try {
-      final normalizedLimit = limit <= 0 ? _defaultPageSize : limit;
-      final normalizedSkip = skip < 0 ? 0 : skip;
-
+      // throw "";
       final response = await _client.get(
         RequestAdapter(
           path: '/todos/user/$userId',
-          queryParams: {'limit': normalizedLimit, 'skip': normalizedSkip},
+          queryParams: {'limit': 30, 'skip': 0},
         ),
       );
 
-      if (response.statusCode != 200 || response.data is! Map) {
-        throw Exception('Falha ao carregar pagina de tarefas remotas.');
+      if (response.statusCode == 200 && response.data is Map) {
+        final payload = Map<String, dynamic>.from(response.data as Map);
+        final todosRaw = payload['todos'];
+        if (todosRaw is List) {
+          final now = DateTime.now();
+          apiTasks.addAll(
+            todosRaw.whereType<Map<String, dynamic>>().map(
+              (json) => Task.fromDummyjson(json, now: now, userId: userId),
+            ),
+          );
+        }
       }
+    } catch (_) {}
 
-      final payload = Map<String, dynamic>.from(response.data as Map);
-      final todosRaw = payload['todos'];
-      if (todosRaw is! List) {
-        throw Exception('Resposta remota invalida para tarefas.');
-      }
+    final localRows = await _db.query(
+      'tasks',
+      where: 'is_deleted = 0 AND user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'updated_at DESC, remote_id DESC',
+    );
+    final localTasks = localRows.map(Task.fromSqliteRow).toList();
 
-      final now = DateTime.now();
-      return todosRaw
-          .whereType<Map<String, dynamic>>()
-          .map((json) => Task.fromDummyjson(json, now: now, userId: userId))
-          .toList(growable: false);
-    } catch (e) {
-      throw Exception('Erro ao carregar tarefas');
-    }
+    return localTasks..addAll(apiTasks);
   }
 
   @override
@@ -177,6 +181,31 @@ final class TaskRepositoryImpl implements TaskRepository {
   Future<({int pending, int completed})> countByStatus({
     required int userId,
   }) async {
+    var apiPending = 0;
+    var apiCompleted = 0;
+    try {
+      final response = await _client.get(
+        RequestAdapter(
+          path: '/todos/user/$userId',
+          queryParams: {'limit': _defaultPageSize, 'skip': 0},
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data is Map) {
+        final payload = Map<String, dynamic>.from(response.data as Map);
+        final todosRaw = payload['todos'];
+        if (todosRaw is List) {
+          for (final json in todosRaw.whereType<Map<String, dynamic>>()) {
+            if (json['completed'] == true) {
+              apiCompleted++;
+            } else {
+              apiPending++;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
     final rows = await _db.rawQuery(
       '''
       SELECT
@@ -190,9 +219,12 @@ final class TaskRepositoryImpl implements TaskRepository {
     );
 
     final row = rows.isEmpty ? const <String, Object?>{} : rows.first;
-    final pending = row['pending_count'] as int? ?? 0;
-    final completed = row['completed_count'] as int? ?? 0;
+    final localPending = row['pending_count'] as int? ?? 0;
+    final localCompleted = row['completed_count'] as int? ?? 0;
 
-    return (pending: pending, completed: completed);
+    return (
+      pending: localPending + apiPending,
+      completed: localCompleted + apiCompleted,
+    );
   }
 }
