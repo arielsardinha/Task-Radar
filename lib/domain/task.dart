@@ -61,6 +61,26 @@ final class Task {
     };
   }
 
+  factory Task.fromDummyjson(
+    Map<String, dynamic> json, {
+    required DateTime now,
+    required int userId,
+  }) {
+    final id = int.tryParse(json['id']?.toString() ?? '0') ?? 0;
+    return Task(
+      localId: id.toString(),
+      remoteId: id,
+      userId: userId,
+      name: json['todo'] ?? '',
+      description: json['todo'] ?? '',
+      status: json['completed'] == true
+          ? TaskStatus.completed
+          : TaskStatus.pending,
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
+
   factory Task.fromSqliteRow(Map<String, Object?> row) {
     return Task(
       localId: row['local_id'] as String,

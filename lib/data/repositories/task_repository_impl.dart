@@ -101,21 +101,8 @@ final class TaskRepositoryImpl implements TaskRepository {
 
       final now = DateTime.now();
       return todosRaw
-          .whereType<Map>()
-          .map(
-            (todo) => Task(
-              localId: todo['id'].toString(),
-              remoteId: todo['id'],
-              userId: todo['userId'],
-              name: todo['todo'],
-              description: todo['todo'],
-              status: todo['completed']
-                  ? TaskStatus.completed
-                  : TaskStatus.pending,
-              createdAt: now,
-              updatedAt: now,
-            ),
-          )
+          .whereType<Map<String, dynamic>>()
+          .map((json) => Task.fromDummyjson(json, now: now, userId: userId))
           .toList(growable: false);
     } catch (e) {
       throw Exception('Erro ao carregar tarefas');
