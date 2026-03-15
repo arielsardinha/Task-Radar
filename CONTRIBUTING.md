@@ -116,3 +116,7 @@ Para reduzir ainda mais a complexidade e aumentar o desacoplamento:
 - SonarQube: Integração no pipeline para análise estática contínua, detecção de code smells, vulnerabilidades e monitoramento rigoroso de débitos técnicos.
 
 - CI/CD com Fastlane: Automação completa do ciclo de vida, desde a execução de testes e linting até o deploy automatizado para ambientes de staging e lojas (TestFlight/Play Store).
+
+#### Acessibilidade: Fontes e Som
+
+- Acessibilidade: Suporte total a escalonamento de fontes e feedback sonoro/visual para leitores de tela (TalkBack/VoiceOver).
