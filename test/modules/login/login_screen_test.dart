@@ -6,7 +6,6 @@ import 'package:get_it/get_it.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:task_radar/data/storage/storage_impl.dart';
-import 'package:task_radar/data/storage/storage_secure_enum.dart';
 import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/global/providers/provider_connectivity.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
