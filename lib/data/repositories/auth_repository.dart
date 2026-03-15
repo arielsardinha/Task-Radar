@@ -1,23 +1,36 @@
 import 'package:task_radar/data/adapter/http_error_adapter.dart';
 import 'package:task_radar/data/adapter/request_adapter.dart';
 import 'package:task_radar/data/adapter/response_adapter.dart';
-import 'package:task_radar/data/models/me_model.dart';
 import 'package:task_radar/data/network/http_service_adapter.dart';
 import 'package:task_radar/data/storage/refresh_token_model.dart';
 import 'package:task_radar/data/storage/storage.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
 import 'package:task_radar/domain/user.dart';
+import 'package:sqflite/sqflite.dart' show Database;
 
 abstract interface class AuthRepository {
   Future<User> login(String username, String password);
   Future<User?> refreshSession(String refreshToken);
+  Future<User> loginOffline();
 }
 
 final class AuthRepositoryImpl implements AuthRepository {
   final Storage _storage;
   final HttpServiceAdapter _httpServiceAdapter;
+  final Database _db;
 
-  AuthRepositoryImpl(this._httpServiceAdapter, this._storage);
+  AuthRepositoryImpl(
+    this._httpServiceAdapter,
+    this._storage, {
+    required Database database,
+  }) : _db = database;
+
+  Future<void> _saveLoggedUserToSqlite(User user) async {
+    await _db.transaction((txn) async {
+      await txn.delete('logged_user');
+      await txn.insert('logged_user', user.toSqliteRow());
+    });
+  }
 
   bool _containsTokenPair(Map<dynamic, dynamic> payload) {
     return payload.containsKey('accessToken') &&
@@ -49,10 +62,12 @@ final class AuthRepositoryImpl implements AuthRepository {
         throw Exception('Falha ao obter perfil do usuário');
       }
 
-      final meModel = MeModel.fromJson(meResponse.data);
-      await _storage.setItem(StorageSecureEnum.auth_user, meModel.toJson());
-      return meModel.toUser();
-    } catch (_) {
+      final user = User.fromDummyJson(meResponse.data);
+      await _storage.setItem(StorageSecureEnum.auth_user, user.toStorageJson());
+
+      await _saveLoggedUserToSqlite(user);
+      return user;
+    } catch (e) {
       throw Exception('Falha ao obter perfil do usuário');
     }
   }
@@ -122,5 +137,16 @@ final class AuthRepositoryImpl implements AuthRepository {
       await _storage.removeAll();
       return null;
     }
+  }
+
+  @override
+  Future<User> loginOffline() async {
+    final rows = await _db.query('logged_user', limit: 1);
+    if (rows.isEmpty) {
+      throw Exception('Nenhum usuário salvo para login offline.');
+    }
+    final user = User.fromSqliteRow(rows.first);
+    await _storage.setItem(StorageSecureEnum.auth_user, user.toStorageJson());
+    return user;
   }
 }

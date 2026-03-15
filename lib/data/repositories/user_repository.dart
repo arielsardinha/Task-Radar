@@ -1,19 +1,22 @@
 import 'package:task_radar/data/adapter/request_adapter.dart';
 import 'package:task_radar/data/adapter/response_adapter.dart';
-import 'package:task_radar/data/models/me_model.dart';
 import 'package:task_radar/data/network/http_service_adapter.dart';
-
+import 'package:sqflite/sqflite.dart' show Database;
+import 'package:task_radar/domain/user.dart';
 abstract interface class UserRepository {
-  Future<List<MeModel>> getUsers({int limit, int skip});
+  Future<List<User>> getUsers({int limit, int skip});
+  Future<void> ensureScheme();
 }
 
 final class UserRepositoryImpl implements UserRepository {
   final HttpServiceAdapter _httpServiceAdapter;
-
-  UserRepositoryImpl(this._httpServiceAdapter);
+ final Database _db;
+  UserRepositoryImpl(this._httpServiceAdapter,{
+     required Database database,
+  }): _db = database;
 
   @override
-  Future<List<MeModel>> getUsers({int limit = 30, int skip = 0}) async {
+  Future<List<User>> getUsers({int limit = 30, int skip = 0}) async {
     final response = await _httpServiceAdapter.get(
       RequestAdapter(
         path: '/users',
@@ -37,11 +40,27 @@ final class UserRepositoryImpl implements UserRepository {
 
     return usersRaw
         .whereType<Map>()
-        .map((json) => MeModel.fromJson(Map<String, dynamic>.from(json)))
+        .map((json) => User.fromDummyJson(Map<String, dynamic>.from(json)))
         .toList(growable: false);
   }
 
   bool _isSuccess(ResponseAdapter response) {
     return response.statusCode == 200 && response.data is Map;
+  }
+
+  @override
+  Future<void> ensureScheme() {
+    return _db.execute('''
+      CREATE TABLE IF NOT EXISTS logged_user (
+        id          TEXT PRIMARY KEY,
+        full_name   TEXT NOT NULL,
+        email       TEXT NOT NULL,
+        phone       TEXT NOT NULL,
+        company     TEXT NOT NULL,
+        department  TEXT NOT NULL,
+        photo       TEXT NOT NULL,
+        user_type   TEXT NOT NULL CHECK(user_type IN ('admin','moderator'))
+      );
+    ''');
   }
 }

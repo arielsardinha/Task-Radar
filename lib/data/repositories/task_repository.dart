@@ -4,13 +4,13 @@ typedef TaskSort = ({String field, bool asc});
 
 abstract interface class TaskRepository {
   Future<List<Task>> getAllByUser({
-    required int userId,
+    required String userId,
     int limit = 30,
     int skip = 0,
   });
 
   Future<Task> create({
-    required int userId,
+    required String userId,
     required String name,
     required String description,
   });
@@ -21,5 +21,5 @@ abstract interface class TaskRepository {
 
   Future<void> delete(Task task);
 
-  Future<({int pending, int completed})> countByStatus({required int userId});
+  Future<({int pending, int completed})> countByStatus({required String userId});
 }

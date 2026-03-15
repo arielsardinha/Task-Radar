@@ -20,12 +20,9 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
 
     try {
       final users = await _userRepository.getUsers(limit: 30, skip: 0);
-      final allUsers = users.map(UsersViewData.fromMeModel).toList(
-        growable: false,
-      );
 
       final visible = _applyView(
-        users: allUsers,
+        users: users,
         query: state.query,
         filter: state.filter,
       );
@@ -33,7 +30,7 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
       emit(
         state.copyWith(
           status: UsersStateStatus.success,
-          allUsers: allUsers,
+          allUsers: users,
           visibleUsers: visible,
           clearMessage: true,
         ),
@@ -88,29 +85,31 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
     );
   }
 
-  List<UsersViewData> _applyView({
-    required List<UsersViewData> users,
+  List<User> _applyView({
+    required List<User> users,
     required String query,
     required UsersFilter filter,
   }) {
     final normalizedQuery = query.trim().toLowerCase();
 
-    return users.where((user) {
-      final byRole = switch (filter) {
-        UsersFilter.all => true,
-        UsersFilter.admin => user.role == UserType.admin,
-        UsersFilter.moderator => user.role == UserType.moderator,
-      };
+    return users
+        .where((user) {
+          final byRole = switch (filter) {
+            UsersFilter.all => true,
+            UsersFilter.admin => user.userType == UserType.admin,
+            UsersFilter.moderator => user.userType == UserType.moderator,
+          };
 
-      if (!byRole) {
-        return false;
-      }
+          if (!byRole) {
+            return false;
+          }
 
-      if (normalizedQuery.isEmpty) {
-        return true;
-      }
+          if (normalizedQuery.isEmpty) {
+            return true;
+          }
 
-      return user.fullName.toLowerCase().contains(normalizedQuery);
-    }).toList(growable: false);
+          return user.fullName.toLowerCase().contains(normalizedQuery);
+        })
+        .toList(growable: false);
   }
 }

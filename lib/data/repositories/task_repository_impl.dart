@@ -40,7 +40,7 @@ final class TaskRepositoryImpl implements TaskRepository {
     CREATE TABLE IF NOT EXISTS tasks (
       local_id     TEXT    PRIMARY KEY,
       remote_id    INTEGER UNIQUE,
-      user_id      INTEGER NOT NULL,
+      user_id      TEXT NOT NULL,
       name         TEXT    NOT NULL,
       description  TEXT    NOT NULL,
       status       TEXT    NOT NULL CHECK(status IN ('pending','completed')),
@@ -74,7 +74,7 @@ final class TaskRepositoryImpl implements TaskRepository {
 
   @override
   Future<List<Task>> getAllByUser({
-    required int userId,
+    required String userId,
     int limit = _defaultPageSize,
     int skip = 0,
   }) async {
@@ -115,7 +115,7 @@ final class TaskRepositoryImpl implements TaskRepository {
 
   @override
   Future<Task> create({
-    required int userId,
+    required String userId,
     required String name,
     required String description,
   }) async {
@@ -179,7 +179,7 @@ final class TaskRepositoryImpl implements TaskRepository {
 
   @override
   Future<({int pending, int completed})> countByStatus({
-    required int userId,
+    required String userId,
   }) async {
     var apiPending = 0;
     var apiCompleted = 0;

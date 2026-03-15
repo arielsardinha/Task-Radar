@@ -5,7 +5,7 @@ enum TaskStatus { pending, completed }
 final class Task {
   final String localId;
   final int? remoteId;
-  final int userId;
+  final String userId;
   final String name;
   final String description;
   final TaskStatus status;
@@ -27,7 +27,7 @@ final class Task {
     String? localId,
     int? remoteId,
     bool clearRemoteId = false,
-    int? userId,
+    String? userId,
     String? name,
     String? description,
     TaskStatus? status,
@@ -64,7 +64,7 @@ final class Task {
   factory Task.fromDummyjson(
     Map<String, dynamic> json, {
     required DateTime now,
-    required int userId,
+    required String userId,
   }) {
     final id = int.tryParse(json['id']?.toString() ?? '0') ?? 0;
     return Task(
@@ -85,7 +85,7 @@ final class Task {
     return Task(
       localId: row['local_id'] as String,
       remoteId: row['remote_id'] as int?,
-      userId: row['user_id'] as int,
+      userId: row['user_id'] as String,
       name: (row['name'] as String?) ?? '',
       description: (row['description'] as String?) ?? '',
       status: row['status'] == TaskStatus.completed.name
@@ -101,7 +101,7 @@ final class Task {
   }
 
   factory Task.create({
-    required int userId,
+    required String userId,
     required String name,
     required String description,
   }) {

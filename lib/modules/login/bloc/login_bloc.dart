@@ -5,12 +5,12 @@ import 'package:task_radar/modules/login/bloc/login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   LoginBloc({
-    AuthRepository? authRepository,
-    @Deprecated('Use authRepository instead.') AuthRepository? loginRepository,
-  }) : _authRepository = authRepository ?? loginRepository!,
+    required AuthRepository authRepository,
+  }) : _authRepository = authRepository,
        super(const LoginStateInitial(obscurePassword: true)) {
     on<LoginEventTogglePasswordVisibility>(_onTogglePasswordVisibility);
     on<LoginEventSubmit>(_onSubmit);
+    on<LoginOfflineEventSubmit>(_onSubmitOffline);
   }
 
   final AuthRepository _authRepository;
@@ -43,6 +43,27 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         LoginStateFailure(
           message:
               'Falha ao realizar login. Verifique suas credenciais e tente novamente.',
+          obscurePassword: state.obscurePassword,
+        ),
+      );
+    }
+  }
+
+    Future<void> _onSubmitOffline(
+    LoginOfflineEventSubmit event,
+    Emitter<LoginState> emit,
+  ) async {
+
+    try {
+      final user = await _authRepository.loginOffline();
+      emit(
+        LoginStateSuccess(user: user, obscurePassword: state.obscurePassword),
+      );
+    } catch (_) {
+      emit(
+        LoginStateFailure(
+          message:
+              'Foi foi identificado um primeiro acesso, faça login ao menos uma vez',
           obscurePassword: state.obscurePassword,
         ),
       );

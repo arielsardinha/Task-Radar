@@ -15,12 +15,34 @@ void main() {
 
   late MockHttpServiceAdapter httpServiceAdapter;
   late MockStorage storage;
+  late MockDatabase database;
+  late MockTransaction transaction;
   late AuthRepositoryImpl sut;
 
   setUp(() {
     httpServiceAdapter = MockHttpServiceAdapter();
     storage = MockStorage();
-    sut = AuthRepositoryImpl(httpServiceAdapter, storage);
+    database = MockDatabase();
+    transaction = MockTransaction();
+
+    when(database.execute(any)).thenAnswer((_) async {});
+    when(database.query(any, limit: anyNamed('limit'))).thenAnswer((_) async => []);
+    when(
+      database.transaction(any, exclusive: anyNamed('exclusive')),
+    ).thenAnswer((invocation) {
+      final callback =
+          invocation.positionalArguments.first
+              as Future<void> Function(dynamic txn);
+      return callback(transaction);
+    });
+    when(transaction.delete(any)).thenAnswer((_) async => 1);
+    when(transaction.insert(any, any)).thenAnswer((_) async => 1);
+
+    sut = AuthRepositoryImpl(
+      httpServiceAdapter,
+      storage,
+      databaseProvider: () async => database,
+    );
   });
 
   group('AuthRepositoryImpl', () {
@@ -106,6 +128,27 @@ void main() {
             ),
           ),
         ]);
+        verify(database.execute(argThat(contains('CREATE TABLE IF NOT EXISTS logged_user')))).called(1);
+        verify(transaction.delete('logged_user')).called(1);
+        verify(
+          transaction.insert(
+            'logged_user',
+            argThat(
+              isA<Map<String, Object?>>()
+                  .having((m) => m['full_name'], 'full_name', 'Usuario Teste')
+                  .having((m) => m['email'], 'email', 'usuario@teste.com')
+                  .having((m) => m['phone'], 'phone', '11999999999')
+                  .having((m) => m['company'], 'company', 'Task Radar')
+                  .having((m) => m['department'], 'department', 'Produto')
+                  .having(
+                    (m) => m['photo'],
+                    'photo',
+                    'https://dummyjson.com/icon/usuario/128',
+                  )
+                  .having((m) => m['user_type'], 'user_type', 'admin'),
+            ),
+          ),
+        ).called(1);
       },
     );
 
@@ -414,5 +457,46 @@ void main() {
         verify(storage.removeAll()).called(1);
       },
     );
+
+    test('loginOffline deve retornar usuario salvo no sqlite', () async {
+      when(database.query('logged_user', limit: 1)).thenAnswer(
+        (_) async => [
+          {
+            'full_name': 'Usuario Offline',
+            'email': 'offline@taskradar.local',
+            'phone': '11911112222',
+            'company': 'Task Radar',
+            'department': 'Offline',
+            'photo': 'https://dummyjson.com/icon/offline/128',
+            'user_type': 'moderator',
+          },
+        ],
+      );
+
+      final result = await sut.loginOffline();
+
+      expect(result.fullName, 'Usuario Offline');
+      expect(result.email, 'offline@taskradar.local');
+      expect(result.phone, '11911112222');
+      expect(result.company, 'Task Radar');
+      expect(result.department, 'Offline');
+      expect(result.photo, 'https://dummyjson.com/icon/offline/128');
+      expect(result.userType.name, 'moderator');
+    });
+
+    test('loginOffline deve lançar excecao quando sqlite nao tiver usuario', () async {
+      when(database.query('logged_user', limit: 1)).thenAnswer((_) async => []);
+
+      expect(
+        () => sut.loginOffline(),
+        throwsA(
+          isA<Exception>().having(
+            (error) => error.toString(),
+            'mensagem',
+            contains('Nenhum usuário salvo para login offline.'),
+          ),
+        ),
+      );
+    });
   });
 }

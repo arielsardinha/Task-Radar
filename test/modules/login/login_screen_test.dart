@@ -2,9 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
+import 'package:task_radar/data/storage/storage_impl.dart';
+import 'package:task_radar/data/storage/storage_secure_enum.dart';
 import 'package:task_radar/domain/user.dart';
+import 'package:task_radar/global/providers/provider_connectivity.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/modules/login/bloc/login_bloc.dart';
 import 'package:task_radar/modules/login/bloc/login_state.dart';
@@ -24,7 +28,9 @@ const dummyUser = User(
 
 void main() {
   late MockAuthRepository authRepository;
+  late MockStorageImpl storage;
   late LoginBloc loginBloc;
+  late ProviderConnectivity providerConnectivity;
 
   setUpAll(() {
     provideDummy<User>(dummyUser);
@@ -32,11 +38,23 @@ void main() {
 
   setUp(() {
     authRepository = MockAuthRepository();
+    storage = MockStorageImpl();
     loginBloc = LoginBloc(authRepository: authRepository);
+    providerConnectivity = ProviderConnectivity();
+
+    final getIt = GetIt.instance;
+    if (getIt.isRegistered<StorageImpl>()) {
+      getIt.unregister<StorageImpl>();
+    }
+    getIt.registerSingleton<StorageImpl>(storage);
+
+    when(storage.setItem(any, any)).thenAnswer((_) async {});
+    when(storage.removeItem(any)).thenAnswer((_) async {});
   });
 
   tearDown(() async {
     await loginBloc.close();
+    await GetIt.instance.reset();
   });
 
   Future<void> settleBlocAsyncChain(WidgetTester tester) async {
@@ -50,29 +68,71 @@ void main() {
 
   Future<void> pumpLoginScreen(WidgetTester tester) async {
     await tester.pumpWidget(
-      Provider<ProviderUser>(
-        create: (_) => ProviderUser(),
-        child: Provider<LoginBloc>.value(
-          value: loginBloc,
-          child: const MaterialApp(home: LoginScreen()),
-        ),
+      MultiProvider(
+        providers: [
+          Provider<ProviderUser>(create: (_) => ProviderUser()),
+          ChangeNotifierProvider<ProviderConnectivity>.value(
+            value: providerConnectivity,
+          ),
+          Provider<LoginBloc>.value(value: loginBloc),
+        ],
+        child: const MaterialApp(home: LoginScreen()),
       ),
     );
     await settleBlocAsyncChain(tester);
   }
 
-  Finder usernameFieldFinder() =>
+  Finder offlineLoginButtonFinder() =>
+      find.byKey(const Key('LoginScreen.OutlinedButton.offlineLogin'));
+
+    Finder usernameFieldFinder() =>
       find.byKey(const Key('LoginScreen.TextFormField.username'));
 
-  Finder passwordFieldFinder() =>
+    Finder passwordFieldFinder() =>
       find.byKey(const Key('LoginScreen.TextFormField.password'));
 
-  Finder submitButtonFinder() =>
+    Finder submitButtonFinder() =>
       find.byKey(const Key('LoginScreen.ElevatedButton.submit'));
 
-  Finder loadingIndicatorFinder() => find.byKey(
+    Finder loadingIndicatorFinder() => find.byKey(
     const Key('LoginScreen.CircularProgressIndicator.authLoading'),
-  );
+    );
+
+  group('LoginScreen offline login', () {
+    testWidgets('deve exibir botao de logar offline quando sem internet', (
+      tester,
+    ) async {
+      providerConnectivity.setOnline(false);
+      await pumpLoginScreen(tester);
+
+      expect(offlineLoginButtonFinder(), findsOneWidget);
+    });
+
+    testWidgets('nao deve exibir botao de logar offline quando online', (
+      tester,
+    ) async {
+      providerConnectivity.setOnline(true);
+      await pumpLoginScreen(tester);
+
+      expect(offlineLoginButtonFinder(), findsNothing);
+    });
+
+    testWidgets('deve entrar offline sem chamar login remoto', (tester) async {
+      providerConnectivity.setOnline(false);
+      await pumpLoginScreen(tester);
+
+      await tester.tap(offlineLoginButtonFinder());
+      await settleBlocAsyncChain(tester);
+
+      verifyNever(authRepository.login(any, any));
+      verify(
+        storage.setItem(
+          StorageSecureEnum.auth_user,
+          any,
+        ),
+      ).called(1);
+    });
+  });
 
   group('LoginScreen widget tests', () {
     testWidgets(

@@ -1,9 +1,9 @@
 import 'package:bloc/bloc.dart';
-import 'package:task_radar/data/models/me_model.dart';
 import 'package:task_radar/data/repositories/task_repository.dart';
 import 'package:task_radar/data/storage/storage_impl.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
 import 'package:task_radar/domain/task.dart';
+import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/modules/tasks/bloc/tasks_event.dart';
 import 'package:task_radar/modules/tasks/bloc/tasks_state.dart';
 
@@ -20,7 +20,7 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
        _storage = storage,
        super(const TasksState.initial()) {
     on<TasksEventLoad>(_onLoad);
-     on<TasksEventLoadMore>(_onLoadMore);
+    on<TasksEventLoadMore>(_onLoadMore);
     on<TasksEventSearchChanged>(_onSearchChanged);
     on<TasksEventFilterChanged>(_onFilterChanged);
     on<TasksEventOrderChanged>(_onOrderChanged);
@@ -306,19 +306,10 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
     try {
       final me = (await _storage.getItemToFactory(
         StorageSecureEnum.auth_user,
-        fromJson: MeModel.fromJson,
+        fromJson: User.fromStorageJson,
       ))!;
 
       final userId = me.id;
-      if (userId == null) {
-        emit(
-          state.copyWith(
-            status: TasksStateStatus.failure,
-            message: 'Nao foi possivel identificar o usuario autenticado.',
-          ),
-        );
-        return;
-      }
 
       await _taskRepository.create(
         userId: userId,
@@ -383,10 +374,10 @@ class TasksBloc extends Bloc<TasksEvent, TasksState> {
     return filtered;
   }
 
-  Future<int?> _resolveUserId() async {
+  Future<String?> _resolveUserId() async {
     final me = await _storage.getItemToFactory(
       StorageSecureEnum.auth_user,
-      fromJson: MeModel.fromJson,
+      fromJson: User.fromStorageJson,
     );
     return me?.id;
   }

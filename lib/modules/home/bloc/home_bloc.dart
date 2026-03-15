@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
-import 'package:task_radar/data/models/me_model.dart';
 import 'package:task_radar/data/repositories/task_repository.dart';
 import 'package:task_radar/data/storage/storage_impl.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
+import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/modules/home/bloc/home_event.dart';
 import 'package:task_radar/modules/home/bloc/home_state.dart';
 
@@ -29,10 +29,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     try {
       final me = (await _storage.getItemToFactory(
         StorageSecureEnum.auth_user,
-        fromJson: MeModel.fromJson,
+        fromJson: User.fromStorageJson,
       ))!;
 
-      final counts = await _taskRepository.countByStatus(userId: me.id!);
+      final counts = await _taskRepository.countByStatus(userId: me.id);
       emit(
         HomeStateOverviewLoaded(
           pending: counts.pending,
@@ -55,11 +55,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     try {
       final me = (await _storage.getItemToFactory(
         StorageSecureEnum.auth_user,
-        fromJson: MeModel.fromJson,
+        fromJson: User.fromStorageJson,
       ))!;
 
       await _taskRepository.create(
-        userId: me.id!,
+        userId: me.id,
         name: event.name,
         description: event.description,
       );

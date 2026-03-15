@@ -8,3 +8,7 @@ final class LoginEventSubmit extends LoginEvent {
 
   LoginEventSubmit({required this.username, required this.password});
 }
+
+final class LoginOfflineEventSubmit extends LoginEvent {
+  LoginOfflineEventSubmit();
+}

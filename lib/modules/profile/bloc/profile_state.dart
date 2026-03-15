@@ -1,4 +1,3 @@
-import 'package:task_radar/data/models/me_model.dart';
 import 'package:task_radar/domain/user.dart';
 
 abstract class ProfileState {
@@ -50,9 +49,8 @@ final class ProfileViewData {
     required this.photo,
   });
 
-  factory ProfileViewData.fromMeModel(MeModel me) {
-    final user = me.toUser();
-    final firstName = (me.firstName ?? '').trim();
+  factory ProfileViewData.fromUser(User user) {
+    final firstName = user.fullName;
     final fallbackFirstName = _extractFirstName(user.fullName);
 
     return ProfileViewData(

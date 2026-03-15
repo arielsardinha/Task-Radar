@@ -42,20 +42,29 @@ sealed class Bindings {
       () => HttpServiceAdapterImp(client: instance.get<dio.Dio>()),
     );
 
-    instance.registerLazySingleton<AuthRepositoryImpl>(
-      () => AuthRepositoryImpl(
-        instance.get<HttpServiceAdapterImp>(),
-        instance.get<StorageImpl>(),
-      ),
-    );
-
-    instance.registerLazySingleton<UserRepositoryImpl>(
-      () => UserRepositoryImpl(instance.get<HttpServiceAdapterImp>()),
-    );
-
     instance.registerSingletonAsync<Database>(
       () async => await openDatabase('task_radar.db', version: 1),
     );
+
+    instance.registerSingletonAsync<AuthRepositoryImpl>(() async {
+      final database = await instance.getAsync<Database>();
+      final repository = AuthRepositoryImpl(
+        instance.get<HttpServiceAdapterImp>(),
+        instance.get<StorageImpl>(),
+        database: database,
+      );
+      return repository;
+    }, dependsOn: [Database]);
+
+    instance.registerSingletonAsync<UserRepositoryImpl>(() async {
+      final database = await instance.getAsync<Database>();
+      final repository = UserRepositoryImpl(
+        instance.get<HttpServiceAdapterImp>(),
+        database: database,
+      );
+      await repository.ensureScheme();
+      return repository;
+    }, dependsOn: [Database]);
 
     instance.registerSingletonAsync<TaskRepositoryImpl>(() async {
       final database = await instance.getAsync<Database>();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:task_radar/global/providers/provider_connectivity.dart';
 import 'package:task_radar/global/providers/provider_user.dart';
 import 'package:task_radar/modules/login/bloc/login_bloc.dart';
 import 'package:task_radar/modules/login/bloc/login_event.dart';
@@ -32,7 +33,13 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _submit(String username, String password) async {
+  Future<void> _submit(String username, String password, {bool offline = false}) async {
+    if(offline){
+        context.read<LoginBloc>().add(
+      LoginOfflineEventSubmit(),
+    );
+      return;
+    }
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) {
       return;
@@ -50,6 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final loginBloc = context.read<LoginBloc>();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isOnline = context.watch<ProviderConnectivity>().isOnline;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -215,6 +223,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                         )
                                       : const Text('Entrar'),
                                 ),
+                                if (!isOnline) ...[
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    width: double.maxFinite,
+                                    child: OutlinedButton.icon(
+                                      key: const Key(
+                                        'LoginScreen.OutlinedButton.offlineLogin',
+                                      ),
+                                      onPressed: isLoading ? null : (){
+                                        _submit("","", offline: true);
+                                      },
+                                      icon: const Icon(Icons.cloud_off_rounded),
+                                      label: const Text('Logar offline'),
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),

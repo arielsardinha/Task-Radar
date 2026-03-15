@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
-import 'package:task_radar/data/models/me_model.dart';
 import 'package:task_radar/data/storage/storage_impl.dart';
 import 'package:task_radar/data/storage/storage_secure_enum.dart';
+import 'package:task_radar/domain/user.dart';
 import 'package:task_radar/modules/profile/bloc/profile_event.dart';
 import 'package:task_radar/modules/profile/bloc/profile_state.dart';
 
@@ -25,14 +25,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     try {
       final me = await _storage.getItemToFactory(
         StorageSecureEnum.auth_user,
-        fromJson: MeModel.fromJson,
+        fromJson: User.fromStorageJson,
       );
 
       if (me == null) {
         throw Exception('no-user');
       }
 
-      emit(ProfileStateSuccess(profile: ProfileViewData.fromMeModel(me)));
+      emit(ProfileStateSuccess(profile: ProfileViewData.fromUser(me)));
     } catch (_) {
       emit(
         const ProfileStateFailure(

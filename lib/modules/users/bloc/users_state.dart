@@ -1,4 +1,3 @@
-import 'package:task_radar/data/models/me_model.dart';
 import 'package:task_radar/domain/user.dart';
 
 enum UsersStateStatus { initial, loading, success, failure }
@@ -7,8 +6,8 @@ enum UsersFilter { all, admin, moderator }
 
 final class UsersState {
   final UsersStateStatus status;
-  final List<UsersViewData> allUsers;
-  final List<UsersViewData> visibleUsers;
+  final List<User> allUsers;
+  final List<User> visibleUsers;
   final UsersFilter filter;
   final String query;
   final String? message;
@@ -32,8 +31,8 @@ final class UsersState {
 
   UsersState copyWith({
     UsersStateStatus? status,
-    List<UsersViewData>? allUsers,
-    List<UsersViewData>? visibleUsers,
+    List<User>? allUsers,
+    List<User>? visibleUsers,
     UsersFilter? filter,
     String? query,
     String? message,
@@ -47,48 +46,5 @@ final class UsersState {
       query: query ?? this.query,
       message: clearMessage ? null : (message ?? this.message),
     );
-  }
-}
-
-final class UsersViewData {
-  final int? id;
-  final String fullName;
-  final String email;
-  final UserType role;
-  final String photo;
-
-  const UsersViewData({
-    required this.id,
-    required this.fullName,
-    required this.email,
-    required this.role,
-    required this.photo,
-  });
-
-  factory UsersViewData.fromMeModel(MeModel me) {
-    final firstName = (me.firstName ?? '').trim();
-    final lastName = (me.lastName ?? '').trim();
-    final normalizedRole = (me.role ?? '').trim().toLowerCase();
-    final composedName = [firstName, lastName]
-        .where((part) => part.isNotEmpty)
-        .join(' ')
-        .trim();
-
-    return UsersViewData(
-      id: me.id,
-      fullName: composedName.isEmpty ? 'Sem nome' : composedName,
-      email: (me.email ?? '').trim(),
-      role: normalizedRole == 'admin' ? UserType.admin : UserType.moderator,
-      photo: (me.image ?? '').trim(),
-    );
-  }
-
-  String get initial {
-    final normalized = fullName.trim();
-    if (normalized.isEmpty) {
-      return '?';
-    }
-
-    return normalized.substring(0, 1).toUpperCase();
   }
 }

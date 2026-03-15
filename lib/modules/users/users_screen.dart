@@ -1,5 +1,4 @@
-import 'dart:async';
-
+import 'dart:async' show Timer;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -23,34 +22,46 @@ class UsersScreen extends StatefulWidget {
 }
 
 class _UsersScreenState extends State<UsersScreen> {
-  static const List<UsersViewData> _skeletonUsers = [
-    UsersViewData(
-      id: null,
+  static const List<User> _skeletonUsers = [
+    User(
+      id: "",
       fullName: 'Nome de usuário',
       email: 'email@dominio.com',
-      role: UserType.admin,
+      userType: UserType.admin,
       photo: '',
+      phone: '',
+      company: '',
+      department: '',
     ),
-    UsersViewData(
-      id: null,
+    User(
+      id: "",
       fullName: 'Nome de usuário',
       email: 'email@dominio.com',
-      role: UserType.admin,
+      userType: UserType.admin,
       photo: '',
+      phone: '',
+      company: '',
+      department: '',
     ),
-    UsersViewData(
-      id: null,
+    User(
+      id: "",
       fullName: 'Nome de usuário',
       email: 'email@dominio.com',
-      role: UserType.moderator,
+      userType: UserType.moderator,
       photo: '',
+      phone: '',
+      company: '',
+      department: '',
     ),
-    UsersViewData(
-      id: null,
+    User(
+      id: "",
       fullName: 'Nome de usuário',
       email: 'email@dominio.com',
-      role: UserType.moderator,
+      userType: UserType.moderator,
       photo: '',
+      phone: '',
+      company: '',
+      department: '',
     ),
   ];
 
@@ -79,7 +90,7 @@ class _UsersScreenState extends State<UsersScreen> {
     });
   }
 
-  void _openUserTasksBottomSheet(UsersViewData user) {
+  void _openUserTasksBottomSheet(User user) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -119,14 +130,20 @@ class _UsersScreenState extends State<UsersScreen> {
               );
             }
 
-            final filteredUsers = isLoading ? _skeletonUsers : state.visibleUsers;
+            final filteredUsers = isLoading
+                ? _skeletonUsers
+                : state.visibleUsers;
 
-            final admins = filteredUsers.where((user) {
-              return user.role == UserType.admin;
-            }).toList(growable: false);
-            final moderators = filteredUsers.where((user) {
-              return user.role == UserType.moderator;
-            }).toList(growable: false);
+            final admins = filteredUsers
+                .where((user) {
+                  return user.userType == UserType.admin;
+                })
+                .toList(growable: false);
+            final moderators = filteredUsers
+                .where((user) {
+                  return user.userType == UserType.moderator;
+                })
+                .toList(growable: false);
 
             return Skeletonizer(
               enabled: isLoading,
@@ -141,13 +158,13 @@ class _UsersScreenState extends State<UsersScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 16),
-                           Text(
-                                'Usuários',
-                                style: textTheme.headlineMedium?.copyWith(
-                                  color: colorScheme.onSurface,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                          Text(
+                            'Usuários',
+                            style: textTheme.headlineMedium?.copyWith(
+                              color: colorScheme.onSurface,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           const SizedBox(height: 16),
                           TextField(
                             controller: _searchController,
@@ -262,8 +279,8 @@ class _UsersScreenState extends State<UsersScreen> {
 
 class _UsersSection extends StatelessWidget {
   final String title;
-  final List<UsersViewData> users;
-  final ValueChanged<UsersViewData> onTapUser;
+  final List<User> users;
+  final ValueChanged<User> onTapUser;
 
   const _UsersSection({
     required this.title,
@@ -305,7 +322,7 @@ class _UsersSection extends StatelessWidget {
 }
 
 class _UserListItem extends StatelessWidget {
-  final UsersViewData user;
+  final User user;
   final VoidCallback onTap;
 
   const _UserListItem({required this.user, required this.onTap});
@@ -330,7 +347,7 @@ class _UserListItem extends StatelessWidget {
               ? null
               : NetworkImage(user.photo),
           child: Text(
-            user.initial,
+            user.initialName,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: colorScheme.onPrimaryContainer,
             ),
@@ -343,10 +360,8 @@ class _UserListItem extends StatelessWidget {
   }
 }
 
-
-
 class _UserTasksBottomSheet extends StatefulWidget {
-  final UsersViewData user;
+  final User user;
   final TaskRepository taskRepository;
 
   const _UserTasksBottomSheet({
@@ -371,11 +386,7 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
   }
 
   Future<List<Task>> _loadUserTasks() async {
-    if (widget.user.id == null) {
-      return const [];
-    }
-
-    return widget.taskRepository.getAllByUser(userId: widget.user.id!);
+    return widget.taskRepository.getAllByUser(userId: widget.user.id);
   }
 
   @override
@@ -398,7 +409,7 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
                     radius: 12,
                     backgroundColor: colorScheme.primaryContainer,
                     child: Text(
-                      widget.user.initial,
+                      widget.user.initialName,
                       style: textTheme.labelSmall?.copyWith(
                         color: colorScheme.onPrimaryContainer,
                       ),
@@ -484,15 +495,17 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
                     growable: false,
                   );
 
-                  final filteredTasks = tasks.where((task) {
-                    return switch (_taskFilter) {
-                      _UserTaskFilter.all => true,
-                      _UserTaskFilter.pending =>
-                        task.status == TaskStatus.pending,
-                      _UserTaskFilter.completed =>
-                        task.status == TaskStatus.completed,
-                    };
-                  }).toList(growable: false);
+                  final filteredTasks = tasks
+                      .where((task) {
+                        return switch (_taskFilter) {
+                          _UserTaskFilter.all => true,
+                          _UserTaskFilter.pending =>
+                            task.status == TaskStatus.pending,
+                          _UserTaskFilter.completed =>
+                            task.status == TaskStatus.completed,
+                        };
+                      })
+                      .toList(growable: false);
 
                   if (filteredTasks.isEmpty) {
                     return Center(
@@ -548,5 +561,3 @@ class _UserTasksBottomSheetState extends State<_UserTasksBottomSheet> {
     );
   }
 }
-
-
