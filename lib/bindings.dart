@@ -5,8 +5,6 @@ import 'package:task_radar/data/network/http_service_adapter.dart';
 import 'package:task_radar/data/repositories/auth_repository.dart';
 import 'package:task_radar/data/repositories/task_repository_impl.dart';
 import 'package:task_radar/data/repositories/user_repository.dart';
-import 'package:task_radar/data/services/task_page_sync_service/datasources/task_local_datasource.dart';
-import 'package:task_radar/data/services/task_page_sync_service/task_page_sync_service.dart';
 import 'package:task_radar/data/storage/storage_impl.dart';
 import 'package:dio/io.dart' show IOHttpClientAdapter;
 import 'package:flutter/foundation.dart' show kDebugMode;
@@ -55,22 +53,6 @@ sealed class Bindings {
       () => UserRepositoryImpl(instance.get<HttpServiceAdapterImp>()),
     );
 
-    instance.registerLazySingleton<TaskLocalDataSource>(
-      () => TaskLocalDataSource(instance.get<Database>()),
-    );
-
-    instance.registerLazySingleton<TaskRemoteDataSource>(
-      () => TaskRemoteDataSource(instance.get<HttpServiceAdapterImp>()),
-    );
-
-    instance.registerLazySingleton<TaskPageSyncService>(
-      () => TaskPageSyncService(
-        local: instance.get<TaskLocalDataSource>(),
-        remote: instance.get<TaskRemoteDataSource>(),
-        pageSize: 30,
-      ),
-    );
-
     instance.registerSingletonAsync<Database>(
       () async => await openDatabase('task_radar.db', version: 1),
     );
@@ -80,7 +62,6 @@ sealed class Bindings {
       final repository = TaskRepositoryImpl(
         database: database,
         client: instance.get<HttpServiceAdapterImp>(),
-        taskPageSyncService: instance.get<TaskPageSyncService>(),
       );
       await repository.ensureSchema();
       return repository;

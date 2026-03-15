@@ -1,20 +1,19 @@
 import 'package:sqflite/sqflite.dart' show Database;
+import 'package:task_radar/data/adapter/request_adapter.dart';
 import 'package:task_radar/data/network/http_service_adapter.dart';
 import 'package:task_radar/data/repositories/task_repository.dart';
-import 'package:task_radar/data/services/task_page_sync_service/task_page_sync_service.dart';
 import 'package:task_radar/domain/task.dart';
 
 final class TaskRepositoryImpl implements TaskRepository {
   static const int _defaultPageSize = 30;
   final Database _db;
-  late final TaskPageSyncService _taskPageSyncService;
+  final HttpServiceAdapter _client;
 
   TaskRepositoryImpl({
     required Database database,
     required HttpServiceAdapter client,
-    required TaskPageSyncService taskPageSyncService,
   }) : _db = database,
-       _taskPageSyncService = taskPageSyncService;
+       _client = client;
 
   /// Garante a criacao do schema local usado pelo fluxo offline-first.
   ///
@@ -79,11 +78,48 @@ final class TaskRepositoryImpl implements TaskRepository {
     int limit = _defaultPageSize,
     int skip = 0,
   }) async {
-    return _taskPageSyncService.getAllByUser(
-      userId: userId,
-      limit: limit,
-      skip: skip,
-    );
+    try {
+      final normalizedLimit = limit <= 0 ? _defaultPageSize : limit;
+      final normalizedSkip = skip < 0 ? 0 : skip;
+
+      final response = await _client.get(
+        RequestAdapter(
+          path: '/todos/user/$userId',
+          queryParams: {'limit': normalizedLimit, 'skip': normalizedSkip},
+        ),
+      );
+
+      if (response.statusCode != 200 || response.data is! Map) {
+        throw Exception('Falha ao carregar pagina de tarefas remotas.');
+      }
+
+      final payload = Map<String, dynamic>.from(response.data as Map);
+      final todosRaw = payload['todos'];
+      if (todosRaw is! List) {
+        throw Exception('Resposta remota invalida para tarefas.');
+      }
+
+      final now = DateTime.now();
+      return todosRaw
+          .whereType<Map>()
+          .map(
+            (todo) => Task(
+              localId: todo['id'].toString(),
+              remoteId: todo['id'],
+              userId: todo['userId'],
+              name: todo['todo'],
+              description: todo['todo'],
+              status: todo['completed']
+                  ? TaskStatus.completed
+                  : TaskStatus.pending,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          )
+          .toList(growable: false);
+    } catch (e) {
+      throw Exception('Erro ao carregar tarefas');
+    }
   }
 
   @override
